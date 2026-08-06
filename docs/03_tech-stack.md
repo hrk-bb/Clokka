@@ -13,7 +13,7 @@
 | 領域 | 採用案 |
 | --- | --- |
 | 言語・実行基盤 | Java 21 LTS、Spring Boot 3、Gradle Wrapper |
-| UI | HTML、CSS、ES ModulesによるJavaScript（ビルドツールなし） |
+| UI | HTML、CSS、ES ModulesによるVanilla JavaScript（ビルドツール・UIフレームワークなし） |
 | DB | Neon Free PostgreSQL（PostgreSQL 16以上、MVP） |
 | DB変更管理 | Flyway OSS、バージョン管理したSQLマイグレーション |
 | 認証 | 社員ID・パスワード、Spring Securityのサーバーセッション、Argon2idハッシュ |
@@ -28,7 +28,7 @@
 | 領域 / 比較対象 | 採用・不採用 | 採用理由・メリット | 不採用理由・デメリット | 将来の乗り換えコスト |
 | --- | --- | --- | --- | --- |
 | バックエンド: Spring Boot / Node.js Express / Cloudflare Workers | **Spring Bootを採用** | 指定構成に適合し、認証・検証・定時処理・監視を1つの成熟した枠組みで提供する。組込みサーバー、ヘルスチェック、外部設定を備える。[Spring Boot資料](https://docs.spring.io/spring-boot/docs/3.0.x/reference/htmlsingle/) | Expressは設計規約を別途揃える必要がある。Workersは運用負荷が小さい反面、Java/Spring資産を使えずベンダー固有APIが増える。 | REST API・SQL・UIを分離するため中程度。Workers移行はAPIと認証・通知の実装し直しが必要。 |
-| UI: Vanilla JS / React / Next.js | **Vanilla JSを採用** | 画面数・状態が限定的で、依存関係・ビルド・更新作業を最小化できる。スマホ対応はHTML/CSSで実現可能。 | React/Next.jsは複雑なUIには有利だが、初期規模には学習・依存更新・ビルドの負担が上回る。 | 中程度。APIを維持して画面を段階的に置換できる。 |
+| UI: Vanilla JavaScript（HTML/CSS + ES Modules） / React / Next.js | **Vanilla JavaScriptを採用** | HTMLとCSSで画面を構成し、ES Modulesで分割したフレームワーク非依存のJavaScriptを使う。画面数・状態が限定的なため、依存関係・ビルド・更新作業を最小化できる。 | React/Next.jsは複雑なUIには有利だが、初期規模には学習・依存更新・ビルドの負担が上回る。 | 中程度。APIを維持して画面を段階的に置換できる。 |
 | DB: Neon PostgreSQL / Render Free Postgres / MariaDB / SQLite / Cloudflare D1 | **Neon Free PostgreSQLを採用** | PostgreSQLの整合性・時刻型・制約を使え、Freeプランはクレジットカード不要・期限なしで0.5GB、100 CU時間/月を提供する。RenderサービスとはTLSで接続する。[Neon Pricing](https://neon.com/pricing) | Render Free Postgresは1GBだが30日で失効し、バックアップ非対応。MariaDBは標準化で劣後し、SQLite/D1は将来の配置先に強く依存する。 | 低〜中。標準SQL中心にし、`pg_dump`/`pg_restore`でAWS RDS PostgreSQLへ移行できる。 |
 | 認証: ローカルセッション / OAuth/OIDC / Keycloak / JWT | **ローカルセッションを採用** | 50名の社内利用では最少の構成で、同一オリジンのHttpOnly CookieによりトークンをJSから隔離できる。パスワードはArgon2idで保存する。OWASPはArgon2idを推奨している。[OWASP](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html) | OAuth/OIDCは既存IdPがあれば利便性が高いが、前提情報がなく、外部依存・設定・費用を増やす。Keycloakは自前運用負荷が大きい。JWTは失効・ブラウザ保管の設計を増やす。 | 中程度。`UserIdentity`境界を設ければ、後にOIDCログインを追加可能。 |
 | パスワードハッシュ: Argon2id / bcrypt | **Argon2idを採用** | 新規システム向けのメモリハードな推奨方式。個別saltを使い、パラメータは本番VMで負荷確認する。 | bcryptは広く使われるが、OWASPはArgon2id等が利用できないレガシー用途に限定する。 | 低。ログイン成功時に旧ハッシュを再ハッシュする移行が可能。 |
@@ -47,7 +47,13 @@
 3. 依存関係は最小限にし、追加時はこの文書に選定理由を追記する。
 4. ランタイムAI/APIは使用しない。AIは設計・実装支援に限定し、社員データやSecretsを外部プロンプトへ送らない。
 
+## 決定・リスク記録
+
+| ID | 内容 | 状態 |
+| --- | --- | --- |
+| D-05 | Render Freeの15分アイドル停止・再起動は、会社提出用MVPの制約として受容する。正式運用前にはホスティングを再選定・移行する。 | 承認済み |
+| R-02 | Render Freeでは初回応答遅延と常時実行の定時処理不可が起こり得る。GitHub Actions起動の通知と管理者一覧でMVPは補完する。 | MVPでは受容、本番移行時に解消 |
+
 ## 承認依頼
 
 承認対象は、(1) Render Free + Neon Freeによる会社提出用MVP、(2) DockerfileとGitHub連携による`main`自動デプロイ、(3) Spring Boot + PostgreSQL +同一オリジンVanilla JS、(4) ローカルセッションとArgon2id、(5) Web Pushと管理者のPush通知状態一覧による提出漏れ対策である。本番クラウドは導入決定後に会社名義で選定する。承認後、Phase 3で実装詳細を設計する。
-
