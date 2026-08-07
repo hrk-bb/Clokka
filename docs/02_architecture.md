@@ -50,7 +50,7 @@ flowchart TB
 | MVP配備 | Render Free Web Serviceへ、`main`へのpushをトリガーとしてDockerfileから自動デプロイする。Renderが提供するHTTPS URLを使用する。 |
 | DB | Neon Free PostgreSQLへTLS接続する。Render Free Postgresは30日で失効しバックアップ非対応のため、MVPの永続DBとして不採用とする。[Render Free](https://render.com/docs/free) |
 | 定時通知 | Renderの停止中はアプリ内スケジューラが動かないため使用しない。GitHub Actionsのスケジュール実行から、共有シークレットで保護した通知APIを呼び出し、失敗時は再試行する。これはMVPのベストエフォート通知であり、管理者の未提出・Push拒否一覧を正とする。 |
-| データ取扱い | 会社の承認・委託先確認前のMVPには実在社員の個人情報を投入せず、ダミーデータのみ使用する。 |
+| データ取扱い | 実社員データをRender Free + Neon FreeのMVP基盤で扱うことはプロダクトオーナー承認済み（`D-06`）。HTTPS、Secrets管理、認可、監査ログを必須とし、保持・削除方針は`R-03`として正式運用前に再確認する。 |
 | 本番配備 | 導入決定後に会社名義のAWS等を選定する。AWSへは同一DockerイメージをECSまたはEC2へ配置し、Neonから`pg_dump`/`pg_restore`でRDS PostgreSQL等へ移行する。AWS料金は別途承認対象とし、無料を前提にしない。 |
 | 監視・バックアップ | MVPではRender/Neonの管理画面と`/actuator/health`を確認する。本番では日次暗号化バックアップ、復元テスト、RPO 24時間・RTO 24時間を必須とする。 |
 
