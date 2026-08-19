@@ -1,45 +1,29 @@
-# Clokka プロジェクト全体ロードマップ
+# Clokka Roadmap Status
 
-| 項目 | 内容 |
+| Item | Value |
 | --- | --- |
-| 目的 | Clokkaを、設計から本番運用・保守まで安全に完遂する順序と承認点を定める。 |
-| 対象読者 | プロダクトオーナー、開発担当者、レビュー担当者、運用管理者 |
-| 更新タイミング | Phase開始・完了時、またはスコープ・技術選定・運用方針が変更された時 |
-| 状態 | Phase 1完了・Phase 2進行中 |
-| 最終更新日 | 2026-08-04 |
+| Purpose | Record phase completion against the original roadmap, not inferred implementation progress. |
+| Audience | Product Owner, AI agents, developers, reviewers. |
+| Update timing | On an explicit phase approval, phase completion, block, or scope change. |
+| Audit basis | `../00_プロジェクトロードマップ.md` and repository inspection on 2026-08-19. |
 
-## 進め方
+Status legend: `NOT_STARTED`, `IN_PROGRESS`, `REVIEW`, `APPROVED`, `BLOCKED`, `COMPLETED`.
 
-各Phaseは必ず **設計 → レビュー → プロダクトオーナー承認 → 実装 → レビュー → 修正 → テスト → コミット → 次工程** の順で進める。承認前に次Phaseの成果物作成・実装へ進まない。レビューで重大な課題が見つかった場合は、当該Phaseの設計または実装へ戻る。
+| Phase | Name | Purpose | Deliverables | Original completion condition | Current state | Approval state |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | Requirements and project governance | Make requirements implementable and establish scope, terminology, non-scope, and document migration. | `01_requirements.md`, glossary, acceptance criteria, traceability, backlog. | Priorities and acceptance criteria approved. | `COMPLETED` per original roadmap. | Product Owner approval recorded in conversation; primary document header is stale (`レビュー・承認待ち`). |
+| 2 | Architecture and technology selection | Select implementation, deployment, notification, auth, and DB approach. | `02_architecture.md`, `03_tech-stack.md`, comparisons/ADRs. | Every technology has comparison, reason, drawbacks, and migration cost; free-tier alternative approved. | `COMPLETED` per original roadmap and explicit Product Owner approval. | Approved; individual document headers are stale (`レビュー・承認待ち`). |
+| 3 | Detailed design | Fix data, API, UI, authorization, and security contracts. | `04_database.md`, `05_api.md`, `06_screen-design.md`, `07_security.md`, ERD, flows, threat analysis. | Traceability to design/tests; role boundaries, submission, Excel, and notification reviewed. | `IN_PROGRESS` / design review. | Not approved as a whole. Individual residual risks were accepted, but this is not Phase 3 approval. |
+| 4 | Development, quality, and Git rules design | Define directory, coding, Git, PR, and test rules. | `08_directory.md`, `09_development-rules.md`, `10_branch-strategy.md`, `11_test-plan.md`, templates. | Rules and test levels approved. | `NOT_STARTED`. Existing Japanese placeholder docs are not Phase 4 deliverables. | Not requested. |
+| 5 | Deployment and operations design | Define sustainable deployment, backups, monitoring, recovery, and secrets. | `12_deployment.md`, `13_operation.md`, backup/recovery/monitoring procedures. | Environment, HTTPS, backup, recovery, responsibility, free-tier monitoring approved. | `NOT_STARTED`. | Not requested. |
+| 6 | Development environment and repository foundation implementation | Build reproducible local environment and CI skeleton. | Spring Boot/frontend skeleton, Docker, migration base, CI, `.env.example`, README. | New developer can start it and CI passes. | `NOT_STARTED`; no code/config/CI exists. | Not requested. |
+| 7 | Backend implementation | Implement auth, attendance, submission, admin, export, notifications. | Schema/migrations, API, scheduler, audit, API tests. | API/auth contracts and tests pass. | `NOT_STARTED`. | Not requested. |
+| 8 | Frontend implementation | Implement employee/admin UI. | Login, attendance, submission, notification, admin, export UI. | Designed screens operate on target browsers. | `NOT_STARTED`. | Not requested. |
+| 9 | Integration, acceptance, and security verification | Verify business flows and failure behavior. | E2E/acceptance/security/load results, Excel sample. | 50-employee dummy month succeeds; no critical/high defects. | `NOT_STARTED`. | Not requested. |
+| 10 | Production deployment and setup | Establish approved production environment and initial data. | Production, deployment/setup/recovery records, release notes. | HTTPS/monitoring/backup/restore verified and release approved. | `NOT_STARTED`. | Not requested. |
+| 11 | Operations, training, and improvement | Make system supportable and improve after launch. | User/admin manuals, checklists, backlog. | Admin demonstration and first-month retrospective completed. | `NOT_STARTED`. | Not requested. |
 
-「完全無料」は、採用サービスの無料枠内で運用できる構成を指す。無料枠・本人確認要件・利用規約が変わる可能性はあるため、Phase 2とPhase 11で運用可否を再確認する。
+## Phase gate warning
 
-## ロードマップ
+Do not start Phase 4 or implementation. Complete Phase 3 design review, resolve or explicitly accept the design/documentation issues in `known-issues.md`, and obtain explicit Product Owner approval first.
 
-| Phase | 目的 | 成果物 | 完了条件 |
-| --- | --- | --- | --- |
-| 1. 要件の確定とプロジェクト統制 | 既存要件を実装可能な要求へ整理し、スコープ・用語・承認者・非対象を確定する。既存の日本語ファイル名と指定された英語ファイル名の対応方針も決める。 | `01_requirements.md`（または既存文書との移行計画）、用語集、受入基準、要件トレーサビリティ、初期バックログ | 未決事項に対するプロダクトオーナーの判断、Must/Should/Couldの優先度、各要件の受入条件が承認済み。**完了** |
-| 2. アーキテクチャと技術選定 | 保守性・単純性・無料・セキュリティの優先順で、実装・配置・通知・認証・DBの構成を決める。 | `02_architecture.md`、`03_tech-stack.md`、技術比較表、ADR（Architecture Decision Record） | 全採用技術に採用理由・比較対象・不採用理由・利点・欠点・移行コストがあり、無料枠と代替案を含め承認済み。**進行中** |
-| 3. 詳細設計 | データ、API、画面、認可、セキュリティを実装契約として固定する。 | `04_database.md`、`05_api.md`、`06_screen-design.md`、`07_security.md`、ER図、画面遷移、脅威分析 | 要件から画面・API・データ・テストへの追跡が可能であり、権限境界、月次提出状態、Excel仕様、通知仕様をレビュー済み。 |
-| 4. 開発・品質・Git運用設計 | 開発者が同じ手順で安全に変更できる土台を決める。 | `08_directory.md`、`09_development-rules.md`、`10_branch-strategy.md`、`11_test-plan.md`、PRテンプレート、Issueテンプレート | ディレクトリ、コーディング規約、Git Flow近似のブランチ規約、コミット規約、必須CI、テストレベルが承認済み。 |
-| 5. 配備・運用設計 | 無料で継続運用でき、障害やデータ消失に対応できる手順を固定する。 | `12_deployment.md`、`13_operation.md`、バックアップ/復元手順、監視・障害対応手順、Secrets管理方針 | 本番・ステージング環境、HTTPS、ドメイン方針、バックアップ、復旧目標、管理責任者、無料枠の監視方法が承認済み。 |
-| 6. 開発環境とリポジトリ基盤の実装 | 承認済み設計に基づき、再現可能なローカル開発環境とCIの骨組みを作る。 | Spring Boot/フロントエンドの初期構成、Docker開発環境、DBマイグレーション基盤、CIワークフロー、`.env.example`、更新済みREADME | 新規開発者が手順どおり起動でき、空のCIが成功し、秘密情報がGitに含まれない。 |
-| 7. バックエンドの実装 | 認証・権限・勤怠・月次提出・管理・Excel出力をAPIとして実装する。 | DBスキーマ、マイグレーション、REST API、定時通知処理、監査ログ、APIテスト | Phase 3のAPI契約と認可が満たされ、単体/結合テストが成功し、レビュー指摘が解消済み。 |
-| 8. フロントエンドの実装 | 社員・管理者がスマホ/PCで必要な操作を迷わず行える画面を実装する。 | ログイン、日次入力、月次提出、通知許諾、管理一覧、Excel出力UI、アクセシビリティ対応 | 主要画面がPhase 3の画面設計どおり動作し、360px幅を含む対象ブラウザで受入テストが成功。 |
-| 9. 結合・受入・セキュリティ検証 | 実データを使わずに、業務フローと失敗時の振る舞いを検証する。 | E2Eテスト、受入テスト結果、負荷確認結果、脆弱性確認結果、Excelサンプル | 50名×1か月のダミーデータで、登録・未提出検知・提出・差戻し・Excel出力・復元がすべて成功。重大/高優先度の不具合が0件。 |
-| 10. 本番配備と初回セットアップ | 承認済みの無料基盤に本番環境を構築し、初期管理者・社員を安全に登録する。 | 本番環境、デプロイ記録、初期設定記録、復旧テスト記録、リリースノート | HTTPSでアクセスでき、監視・バックアップ・復元が確認済み。プロダクトオーナーが本番リリースを承認。 |
-| 11. 運用開始・教育・改善 | 利用者が運用できる状態にし、月末提出漏れゼロを継続的に改善する。 | ユーザーマニュアル、管理者マニュアル、初回セットアップ手順、運用チェックリスト、`14_backlog.md` | 管理者が未提出確認・差戻し・Excel出力・障害一次対応を実演できる。初月運用の振り返りと改善項目が記録済み。 |
-
-## フェーズ横断の品質ゲート
-
-| ゲート | 必須条件 |
-| --- | --- |
-| 設計承認 | 対象Phaseの目的・成果物・選択肢・リスク・受入条件をレビューし、プロダクトオーナーが明示承認する。 |
-| 実装開始 | 対応する設計承認と、実装単位のIssueまたはタスクが存在する。 |
-| マージ | レビュー完了、必要なテスト成功、秘密情報・個人情報を含まない、小さく説明可能なコミットである。 |
-| 本番配備 | Phase 9の検証完了、ロールバック/復元手順確認、プロダクトオーナーのリリース承認がある。 |
-| 運用継続 | 月次の未提出状況、バックアップ成功、無料枠使用量、依存関係更新を管理者が確認する。 |
-
-## 最初の承認対象
-
-本書の承認後は **Phase 1（要件の確定とプロジェクト統制）** に着手する。Phase 1では実装を行わず、未決事項を質問として整理し、要件書の命名・移行方針を含むレビュー用成果物を提示する。
