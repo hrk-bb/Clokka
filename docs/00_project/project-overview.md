@@ -5,7 +5,7 @@
 | Purpose | Explain the project’s confirmed product scope and intended technical direction for successors. |
 | Audience | Product Owner, AI agents, developers, reviewers, operators. |
 | Update timing | When approved requirements, scope, architecture, or final goal changes. |
-| Audit basis | Repository contents inspected on 2026-08-19. |
+| Audit basis | Repository contents inspected and synchronized on 2026-08-24. |
 
 ## Project
 
@@ -70,5 +70,3 @@ Complete and operable system: approved design documents, repository/development 
 - `../05_api.md`
 - `../06_screen-design.md`
 - `../07_security.md`
-
-
