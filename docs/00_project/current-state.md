@@ -5,7 +5,7 @@
 | Purpose | Provide the next agent with a fact-based, immediately actionable project snapshot. |
 | Audience | AI agents, Product Owner, developers, reviewers. |
 | Update timing | At the end of every meaningful work session and before any handoff. |
-| Last repository audit | 2026-08-19. |
+| Last repository audit | 2026-08-24. |
 
 ## Current Phase
 
@@ -20,7 +20,7 @@ Design-first project. Phase 1 and Phase 2 are recorded as complete/approved by t
 - Phase 1 requirements/governance is recorded as completed.
 - Phase 2 architecture and technology selection is recorded as completed and approved.
 - Phase 3 review drafts exist for database, API, screen, and security design.
-- The handoff audit documents and `AGENTS.md` were created on 2026-08-19.
+- The handoff audit documents and `AGENTS.md` were created on 2026-08-19 and synchronized with primary documents on 2026-08-24.
 
 ## In Progress
 
@@ -41,9 +41,7 @@ No technical blocker was verified. However, Phase 4+ is gated by Phase 3 review 
 | ID | Item |
 | --- | --- |
 | Q-01 | Phase 3 whole-phase approval after review of DB/API/UI/security and known documentation/design issues. |
-| Q-02 | Reconcile the conflicting Push-status aggregation algorithm before implementation. |
-| Q-03 | Decide whether the old Japanese documents are retained as immutable history or updated/redirected, and update the README’s primary requirements link accordingly. |
-| Q-04 | Resolve MVP data-handling wording: `D-06` approves real employee data, while one architecture risk row still says MVP uses dummy data only. |
+| Q-06 | Define and approve the persistence model for reminder-delivery history/idempotency. The API requires “no more than once per employee per day,” but no table/field is designed. |
 
 ## Current Task
 
@@ -52,7 +50,7 @@ The immediately preceding development task was Phase 3 detailed-design review. T
 ## Next Task
 
 1. Read `known-issues.md` and validate the listed conflicts against primary documents.
-2. Present the Phase 3 review packet to the Product Owner, explicitly covering `Q-01`–`Q-04`.
+2. Present the Phase 3 review packet to the Product Owner, explicitly covering `Q-01` and `Q-06`.
 3. Only after approval, create Phase 4 documents (`08_directory.md` through `11_test-plan.md`) and request their review; do not create implementation code before that gate.
 
 ## Repository State
@@ -73,10 +71,10 @@ The immediately preceding development task was Phase 3 detailed-design review. T
 
 | Document group | State |
 | --- | --- |
-| `01_requirements.md` | Phase 1 review draft; roadmap says completed, but header says approval pending. Contains formatting and duplication issues. |
-| `02_architecture.md`, `03_tech-stack.md` | Phase 2 chosen/approved per roadmap and Product Owner message; headers still say approval pending. |
+| `01_requirements.md` | Phase 1 approved primary requirements. |
+| `02_architecture.md`, `03_tech-stack.md` | Phase 2 approved primary documents. |
 | `04_database.md`, `05_api.md`, `06_screen-design.md`, `07_security.md` | Phase 3 review drafts; not whole-phase approved. |
-| Japanese-named docs | Mostly old/placeholder documents. `01_要件定義.md` contains an outdated OCI-centered architecture, conflicting with current Render/Neon MVP design. |
+| Japanese-named docs | Explicitly marked as history/initial outlines; current primary files are linked from their headers. |
 | Phase 4/5 docs | Missing; only Japanese placeholders exist for some intended topics. |
 | README | Exists but points to old `01_要件定義.md`, contrary to migration policy naming `01_requirements.md` as future primary source. |
 
@@ -84,9 +82,9 @@ The immediately preceding development task was Phase 3 detailed-design review. T
 
 1. Do not claim any feature has been implemented, tested, deployed, or run: no evidence exists in this repository.
 2. Do not start implementation until Phase 3 is explicitly approved.
-3. Do not silently use the old Japanese requirements/OCI design as current architecture.
+3. Do not silently alter the approved requirements or Phase 2 architecture.
 4. Do not put secrets or real employee data in source control.
-5. Resolve the Push-status aggregation conflict before writing notification logic.
+5. Do not write notification scheduling logic until delivery-history persistence is approved.
 
 ## Handoff Self-audit
 
@@ -99,7 +97,6 @@ The immediately preceding development task was Phase 3 detailed-design review. T
 | Q5: Can it identify unimplemented features? | Yes. | No source/test/CI exists; feature status matrix is in `handoff.md`. |
 | Q6: Can it identify known problems? | Yes. | `known-issues.md`. |
 | Q7: Can it identify decisions/reasons? | Yes, where documented. | `decisions.md`; unknown reasons are marked unknown. |
-| Q8: Can it identify document/code conflicts? | Yes. | `known-issues.md`; code is absent. |
+| Q8: Can it identify document/code conflicts? | Yes. | `known-issues.md`; code is absent and current document conflicts are recorded. |
 | Q9: Can it identify approvals needed? | Yes. | Pending Approval section. |
 | Q10: Can work continue if this agent disappears? | `READY_WITH_WARNINGS`. | Git remote/history and Phase 3 approval remain unverified/pending. |
-
