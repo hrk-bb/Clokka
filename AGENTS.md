@@ -40,4 +40,3 @@ Read in this order:
 - Update the applicable source design document and test plan when an approved specification changes.
 - State what was verified and what could not be verified.
 
-
