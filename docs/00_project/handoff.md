@@ -5,7 +5,7 @@
 | Purpose | Hand over the project without relying on chat history. |
 | Audience | Next AI agent, Product Owner, developers, reviewers. |
 | Update timing | Before replacing an agent, after a phase change, or after a material audit finding. |
-| Audit date | 2026-08-19. |
+| Audit date | 2026-08-24. |
 
 ## Handoff Summary
 
@@ -47,11 +47,9 @@ Clokka is a design-first attendance-management MVP. Phase 1 (requirements) and P
 Read `known-issues.md` before editing. Highest-priority items are:
 
 1. The repository has no implementation, tests, CI, Docker, or deployment configuration.
-2. `01_requirements.md` has a broken requirement table and duplicate/contradictory Push-state definitions.
-3. Push aggregation rules conflict between requirements/API and DB design.
-4. `02_architecture.md` conflicts about dummy data vs approved real employee data, and retains obsolete VM risk wording.
-5. README still links to an old Japanese document that conflicts with current hosting design.
-6. Git remote/history/working-tree status could not be verified in this environment.
+2. Notification reminder history/idempotency is required by API/architecture but has no approved DB persistence model.
+3. Data retention/deletion policy remains unresolved before formal operation.
+4. Git remote/history/working-tree status could not be verified in this environment.
 
 ## Important Decisions
 
@@ -77,16 +75,14 @@ See `decisions.md` for evidence and alternatives. Do not revise these silently:
 | ID | Required decision |
 | --- | --- |
 | Q-01 | Approve/reject Phase 3 as a whole after reviewing DB/API/UI/security designs and audit issues. |
-| Q-02 | Select the authoritative multi-browser Push aggregation rule. |
-| Q-03 | Confirm treatment of legacy Japanese docs and README link. |
-| Q-04 | Confirm corrected wording for real employee data vs dummy-only architecture text. |
 | Q-05 | Before Phase 5/10: set employee-data retention/deletion policy (`R-03`) and production hosting/availability design (`R-02`, `R-05`). |
+| Q-06 | Define and approve reminder-delivery history/idempotency persistence for the “once per employee per day” requirement. |
 
 ## Immediate Next Actions
 
 1. Verify Git availability and restore/confirm the intended remote, branches, commits, and Actions visibility. Do not invent Git history.
-2. Read `known-issues.md`; prepare a concise Phase 3 correction/review proposal without implementing software.
-3. Obtain Product Owner decisions for `Q-01`–`Q-04`.
+2. Read `known-issues.md`; prepare a concise Phase 3 review proposal without implementing software.
+3. Obtain Product Owner decisions for `Q-01` and `Q-06`.
 4. If Phase 3 is approved, create Phase 4 governance/test documents and submit them for review.
 5. Only then begin Phase 6 foundation implementation under the approved Phase 4/5 rules.
 
@@ -101,5 +97,3 @@ See `decisions.md` for evidence and alternatives. Do not revise these silently:
 7. `../02_architecture.md` and `../03_tech-stack.md`
 8. `../04_database.md`, `../05_api.md`, `../06_screen-design.md`, `../07_security.md`
 9. Legacy Japanese docs only for historical comparison, not as current truth.
-
-
