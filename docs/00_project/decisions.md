@@ -5,7 +5,7 @@
 | Purpose | Preserve evidence-backed architecture and product decisions for future agents. |
 | Audience | Product Owner, AI agents, developers, reviewers. |
 | Update timing | When an approved decision is created, changed, superseded, or contradicted. |
-| Audit basis | Existing primary documents inspected on 2026-08-19. |
+| Audit basis | Existing primary documents inspected and synchronized on 2026-08-24. |
 
 ## ADR-001 — Work-date basis for overnight attendance
 
@@ -53,7 +53,7 @@
 
 **Consequences:** Render Free idle shutdown is accepted for MVP; scheduled notification requires external GitHub Actions trigger; no cloud-specific application API should be introduced. Production deployment is not designed/approved yet.
 
-**Evidence:** `../02_architecture.md`, `../03_tech-stack.md`, `../00_プロジェクトロードマップ.md` Phase 2. Note conflicting architecture wording in `known-issues.md`.
+**Evidence:** `../02_architecture.md`, `../03_tech-stack.md`, `../00_プロジェクトロードマップ.md` Phase 2.
 
 ## ADR-004 — Authentication and password storage
 
@@ -75,7 +75,7 @@
 
 **Decision:** Use Web Push plus in-app warnings; show aggregated Push state in the admin UI. No external contact feature for users who deny/disable notifications in the initial release.
 
-**Status:** APPROVED in principle; aggregation algorithm requires reconciliation before implementation.
+**Status:** APPROVED as specified in the primary requirements/API; not implemented.
 
 **Date:** `D-04` recorded; exact approval timestamp unavailable from repository evidence.
 
@@ -85,7 +85,7 @@
 
 **Consequences:** Browser-only notifications cannot guarantee reachability; administrator status list is the fallback. A per-browser random `installation_id` is designed instead of device fingerprinting.
 
-**Evidence:** `../01_requirements.md` D-04 and Push sections; `../04_database.md`; `../05_api.md`; conflict recorded in `known-issues.md`.
+**Evidence:** `../01_requirements.md` D-04 and Push sections; `../04_database.md`; `../05_api.md`.
 
 ## ADR-006 — Monthly submission record lifecycle
 
@@ -113,10 +113,8 @@
 
 **Reason:** Explicit Product Owner approval.
 
-**Alternatives:** Dummy data only until company approval. Superseded by D-06, but stale text remains in architecture.
+**Alternatives:** Dummy data only until company approval. Superseded by D-06.
 
-**Consequences:** Must reconcile stale dummy-data text; data retention/deletion remains unresolved (`R-03`).
+**Consequences:** Data retention/deletion remains unresolved (`R-03`).
 
-**Evidence:** `../01_requirements.md` D-06; `../07_security.md`; contradiction in `../02_architecture.md` documented in `known-issues.md`.
-
-
+**Evidence:** `../01_requirements.md` D-06; `../02_architecture.md`; `../07_security.md`.
