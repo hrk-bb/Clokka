@@ -1,4 +1,12 @@
 # Clokka
-社員の出退勤を見える化。提出忘れ防止。
-小規模会社の社員がスマホブラウザから簡単に入力し、月末にExcelファイルとして出力し提出。
-管理者が社員の提出ステータスを瞬時に把握できるweb完結プラットフォーム。
+
+社員約50名向けの、月末の勤務実績提出忘れをなくす出退勤管理Webアプリです。現在はPhase 3（詳細設計のレビュー段階）であり、アプリケーションコード・テスト・CI/CD・デプロイ設定はまだ作成されていません。
+
+設計の正本は [docs/01_requirements.md](docs/01_requirements.md) です。開発の現在地と次工程は [docs/00_project/current-state.md](docs/00_project/current-state.md) を参照してください。`docs/01_要件定義.md` は履歴文書です。
+
+## 構成
+
+- `frontend/`: HTML、CSS、JavaScript（未実装）
+- `backend/`: Spring Boot API（未実装）
+- `docs/`: 要件・設計・プロジェクト引き継ぎ資料
+- `.github/workflows/`: CI（未作成）
