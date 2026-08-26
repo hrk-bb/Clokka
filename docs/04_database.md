@@ -1,125 +1,198 @@
-# Clokka データベース設計（Phase 3 レビュー版）
+# Clokka Database Design (Phase 3 review)
 
-| 項目 | 内容 |
+| Item | Value |
 | --- | --- |
-| 目的 | 勤怠・月次提出・通知・監査を矛盾なく保持するPostgreSQL論理設計を定義する。 |
-| 対象読者 | 開発者、テスト担当者、運用管理者、レビュー担当者 |
-| 更新タイミング | エンティティ、制約、インデックス、保持方針を変更する時 |
-| 状態 | レビュー・承認待ち |
-| 最終更新日 | 2026-08-24 |
+| Purpose | Define a PostgreSQL design that keeps attendance, monthly submission, deadlines, notification delivery, Push subscriptions, and audit data consistent. |
+| Status | Review pending approval. No migration has been executed. |
+| Last updated | 2026-08-26 |
 
-## 1. 設計方針
+## 1. Design decisions
 
-- 主キーはUUID、業務上の日時は`TIMESTAMPTZ`、勤務日は`DATE`を用いる。
-- 勤務日の基準は必ず出勤時刻のJST日付とし、日跨ぎでも`work_date`は変えない（`D-01`）。
-- 提出済み月の勤怠を直接更新・削除しない。差戻し後のみ更新を許可する。
-- 時刻・状態の整合性はDB制約とアプリケーションの両方で検証する。
-- スキーマ変更はFlyway OSSの連番SQLマイグレーションだけで実施する。
+- UUID is used for primary keys. Business instants use `TIMESTAMPTZ`; JST business dates and months use `DATE`.
+- A work date is always the JST date of `clock_in_at`. Overnight work remains in its clock-in month (`D-01`).
+- `submission_deadlines` is the source of truth for each target month. Its `due_at` is an instant, while its business interpretation and default are JST.
+- The notification job provides **at-most-once delivery attempt per employee and JST date**. It commits a durable reservation before contacting a Push service. This deliberately favors no duplicate Push over retrying a potentially already-delivered Push after a process failure.
+- A Push subscription is one browser installation. The complete Web Push subscription object is encrypted as one opaque payload; endpoint and keys are never stored or indexed in plaintext.
+- Foreign keys, `NOT NULL`, `CHECK`, unique constraints, restricted database roles, and immutable-log triggers protect invariants. Application validation remains responsible for authorization, calendar-derived target days, and cross-row submission checks.
+- Schema changes are Flyway versioned SQL migrations only. The DDL below is a required implementation contract for Phase 6/7, not an executed migration.
 
-## 2. ER図
+## 2. ER diagram
 
 ```mermaid
 erDiagram
-  departments ||--o{ employees : has
-  employees ||--o{ attendance_records : records
-  employees ||--o{ monthly_submissions : submits
+  departments ||--o{ employees : contains
+  employees ||--o{ attendance_records : owns
+  employees ||--o{ monthly_submissions : owns
   employees ||--o{ push_subscriptions : owns
-  employees ||--o{ audit_logs : performs
-  monthly_submissions ||--o{ audit_logs : affects
-  company_calendar ||--o{ attendance_records : "validates work date"
+  employees ||--o{ notification_deliveries : receives
+  employees ||--o{ audit_logs : acts
+  submission_deadlines ||--o{ notification_deliveries : governs
+  notification_deliveries ||--o{ notification_delivery_attempts : has
+  push_subscriptions ||--o{ notification_delivery_attempts : targets
 
-  departments { uuid id PK
-    varchar name UK
+  submission_deadlines {
+    date target_month PK
+    timestamptz due_at
   }
-  employees { uuid id PK
-    varchar employee_code UK
-    varchar display_name
-    varchar role
-    boolean is_active
-  }
-  attendance_records { uuid id PK
+  notification_deliveries {
+    uuid id PK
     uuid employee_id FK
-    date work_date
-    timestamptz clock_in_at
-    timestamptz clock_out_at
-    smallint break_minutes
-  }
-  monthly_submissions { uuid id PK
-    uuid employee_id FK
-    date target_month
+    date notification_date
+    date target_month FK
     varchar status
-    timestamptz submitted_at
   }
-  push_subscriptions { uuid id PK
+  push_subscriptions {
+    uuid id PK
     uuid employee_id FK
     uuid installation_id
     varchar permission_status
-    jsonb subscription_payload
+    bytea subscription_ciphertext
   }
 ```
 
-## 3. テーブル定義
+## 3. Table and relationship contract
 
-| テーブル | 主な列・制約 | 目的 |
+All `created_at` and `updated_at` values are `TIMESTAMPTZ NOT NULL`. `created_at` is immutable; `updated_at` is written by the application in the same transaction.
+
+| Table | Required columns and constraints | Foreign key / deletion rule |
 | --- | --- | --- |
-| `departments` | `id`, `name UNIQUE`, `is_active` | 部署マスタ。削除ではなく無効化する。 |
-| `employees` | `id`, `employee_code UNIQUE`, `display_name`, `password_hash`, `role CHECK ('EMPLOYEE','ADMIN')`, `department_id`, `is_active`, `last_login_at` | 認証・権限・社員表示。パスワード平文は保持しない。 |
-| `attendance_records` | `id`, `employee_id`, `work_date`, `clock_in_at`, `clock_out_at`, `break_minutes`, `note`, `created_at`, `updated_at`, `UNIQUE(employee_id, work_date)` | 1社員・1勤務日の勤怠。複数回出退勤は初期対象外。 |
-| `monthly_submissions` | `id`, `employee_id`, `target_month`（月初日）, `status CHECK ('DRAFT','SUBMITTED','RETURNED')`, `submitted_at`, `returned_at`, `return_reason`, `updated_at`, `UNIQUE(employee_id, target_month)` | 月次提出の状態・時刻・差戻し理由。 |
-| `company_calendar` | `calendar_date UNIQUE`, `kind CHECK ('HOLIDAY','WORKDAY_OVERRIDE')`, `name` | 会社休日と休日出勤日の例外設定。 |
-| `push_subscriptions` | `id`, `employee_id`, `installation_id UUID`, `endpoint UNIQUE`, `p256dh`, `auth_secret`, `permission_status CHECK ('GRANTED','DENIED','DEFAULT','UNSUPPORTED','UNKNOWN')`, `last_reported_at`, `revoked_at`, `UNIQUE(employee_id, installation_id)` | ブラウザ設置単位のPush購読と許可状態。`GRANTED`は有効な購読登録がある端末だけに使う。管理画面は社員単位に集約する。 |
-| `audit_logs` | `id`, `actor_employee_id`, `action`, `target_type`, `target_id`, `before_data JSONB`, `after_data JSONB`, `created_at`, `request_id` | 更新・提出・差戻し・出力・権限変更の追跡。 |
+| `departments` | `id UUID PK`, `name VARCHAR(100) NOT NULL UNIQUE`, `is_active BOOLEAN NOT NULL DEFAULT true`, timestamps | Departments are deactivated, not deleted. `employees.department_id` uses `ON DELETE RESTRICT`. |
+| `employees` | `id UUID PK`, `employee_code VARCHAR(64) NOT NULL UNIQUE`, `display_name VARCHAR(200) NOT NULL`, `password_hash VARCHAR(255) NOT NULL`, `role VARCHAR(16) NOT NULL CHECK ('EMPLOYEE','ADMIN')`, `department_id UUID NOT NULL`, `is_active BOOLEAN NOT NULL DEFAULT true`, `last_login_at TIMESTAMPTZ NULL`, timestamps | Employees are deactivated, not deleted. Dependent business data uses `ON DELETE RESTRICT`. |
+| `attendance_records` | `id UUID PK`, `employee_id UUID NOT NULL`, `work_date DATE NOT NULL`, `clock_in_at TIMESTAMPTZ NOT NULL`, `clock_out_at TIMESTAMPTZ NOT NULL`, `break_minutes SMALLINT NOT NULL DEFAULT 0`, `note VARCHAR(2000) NOT NULL DEFAULT ''`, timestamps, `UNIQUE(employee_id, work_date)` | `employee_id REFERENCES employees(id) ON DELETE RESTRICT`. |
+| `monthly_submissions` | `id UUID PK`, `employee_id UUID NOT NULL`, `target_month DATE NOT NULL`, `status VARCHAR(16) NOT NULL`, `submitted_at TIMESTAMPTZ NULL`, `returned_at TIMESTAMPTZ NULL`, `return_reason VARCHAR(2000) NULL`, timestamps, `UNIQUE(employee_id, target_month)` | `employee_id REFERENCES employees(id) ON DELETE RESTRICT`. |
+| `company_calendar` | `calendar_date DATE PK`, `kind VARCHAR(20) NOT NULL CHECK ('HOLIDAY','WORKDAY_OVERRIDE')`, `name VARCHAR(200) NOT NULL`, timestamps | This is an exception calendar; no attendance FK is used because target-day calculation is derived from calendar rules. Calendar entries referenced by a submission must not be physically deleted; administrative deletion is out of scope for the API. |
+| `submission_deadlines` | `target_month DATE PK`, `due_at TIMESTAMPTZ NOT NULL`, `updated_by_employee_id UUID NOT NULL`, timestamps | `updated_by_employee_id REFERENCES employees(id) ON DELETE RESTRICT`; `notification_deliveries.target_month` uses `ON DELETE RESTRICT`. |
+| `push_subscriptions` | `id UUID PK`, `employee_id UUID NOT NULL`, `installation_id UUID NOT NULL`, `permission_status VARCHAR(16) NOT NULL`, encrypted-payload columns described below, `last_reported_at TIMESTAMPTZ NOT NULL`, `revoked_at TIMESTAMPTZ NULL`, `revocation_reason VARCHAR(32) NULL`, timestamps, `UNIQUE(employee_id, installation_id)` | `employee_id REFERENCES employees(id) ON DELETE RESTRICT`. Rows are never deleted by the application. |
+| `notification_deliveries` | `id UUID PK`, `employee_id UUID NOT NULL`, `notification_date DATE NOT NULL`, `target_month DATE NOT NULL`, `reminder_stage VARCHAR(16) NOT NULL`, `status VARCHAR(24) NOT NULL`, `reserved_at TIMESTAMPTZ NOT NULL`, `completed_at TIMESTAMPTZ NULL`, `request_id UUID NOT NULL`, timestamps, `UNIQUE(employee_id, notification_date)` | Employee and deadline references use `ON DELETE RESTRICT`. This unique key is the durable at-most-once guard. |
+| `notification_delivery_attempts` | `id UUID PK`, `delivery_id UUID NOT NULL`, `push_subscription_id UUID NOT NULL`, `status VARCHAR(24) NOT NULL`, `provider_status_code INTEGER NULL`, `attempted_at TIMESTAMPTZ NOT NULL`, timestamps, `UNIQUE(delivery_id, push_subscription_id)` | `delivery_id REFERENCES notification_deliveries(id) ON DELETE RESTRICT`; `push_subscription_id REFERENCES push_subscriptions(id) ON DELETE RESTRICT`. |
+| `audit_logs` | `id UUID PK`, `actor_type VARCHAR(16) NOT NULL`, `actor_employee_id UUID NULL`, `action VARCHAR(64) NOT NULL`, `target_type VARCHAR(64) NOT NULL`, `target_id UUID NULL`, `before_data JSONB NULL`, `after_data JSONB NULL`, `request_id UUID NOT NULL`, `created_at TIMESTAMPTZ NOT NULL` | `actor_employee_id REFERENCES employees(id) ON DELETE RESTRICT` when an actor is an employee. `target_type`/`target_id` are polymorphic and therefore cannot have a database FK; the application must validate them. |
 
-## 4. 主要制約・計算
+`target_month` is always the first calendar day of the JST target month. `due_at` is stored as an absolute instant. The default deadline for target month `M` is **the third day of `M + 1 month` at 23:59:00 Asia/Tokyo**. The application creates an explicit `submission_deadlines` row with that instant before a month is used by a deadline, submission, or reminder workflow; absence of a row is a configuration error, not a fallback to a hidden default. The API accepts a JST offset timestamp and returns an ISO-8601 instant; the UI displays it in JST.
 
-| 対象 | ルール |
+## 4. PostgreSQL DDL invariants
+
+The following constraints are mandatory in the initial Flyway schema. Column types may be expanded only if the same invariants remain true.
+
+```sql
+ALTER TABLE attendance_records
+  ADD CONSTRAINT ck_attendance_work_date_jst
+    CHECK (work_date = (clock_in_at AT TIME ZONE 'Asia/Tokyo')::date),
+  ADD CONSTRAINT ck_attendance_elapsed
+    CHECK (clock_out_at > clock_in_at
+       AND clock_out_at - clock_in_at < INTERVAL '24 hours'),
+  ADD CONSTRAINT ck_attendance_break
+    CHECK (break_minutes >= 0
+       AND break_minutes < EXTRACT(EPOCH FROM (clock_out_at - clock_in_at)) / 60);
+
+ALTER TABLE monthly_submissions
+  ADD CONSTRAINT ck_submission_target_month
+    CHECK (target_month = date_trunc('month', target_month)::date),
+  ADD CONSTRAINT ck_submission_status_fields
+    CHECK (
+      (status = 'DRAFT'
+        AND submitted_at IS NULL AND returned_at IS NULL AND return_reason IS NULL)
+      OR (status = 'SUBMITTED'
+        AND submitted_at IS NOT NULL AND returned_at IS NULL AND return_reason IS NULL)
+      OR (status = 'RETURNED'
+        AND submitted_at IS NOT NULL AND returned_at IS NOT NULL
+        AND return_reason IS NOT NULL AND length(btrim(return_reason)) > 0)
+    );
+
+ALTER TABLE submission_deadlines
+  ADD CONSTRAINT ck_deadline_target_month
+    CHECK (target_month = date_trunc('month', target_month)::date);
+
+ALTER TABLE notification_deliveries
+  ADD CONSTRAINT ck_notification_stage
+    CHECK (reminder_stage IN ('D7','D3','D1','DUE')),
+  ADD CONSTRAINT ck_notification_status
+    CHECK (status IN ('RESERVED','SENT','SKIPPED','FAILED')),
+  ADD CONSTRAINT ck_notification_completed
+    CHECK ((status = 'RESERVED' AND completed_at IS NULL)
+       OR (status IN ('SENT','SKIPPED','FAILED') AND completed_at IS NOT NULL));
+
+ALTER TABLE notification_delivery_attempts
+  ADD CONSTRAINT ck_notification_attempt_status
+    CHECK (status IN ('SENT','FAILED','SKIPPED'));
+
+ALTER TABLE audit_logs
+  ADD CONSTRAINT ck_audit_actor
+    CHECK ((actor_type = 'EMPLOYEE' AND actor_employee_id IS NOT NULL)
+       OR (actor_type = 'SYSTEM' AND actor_employee_id IS NULL));
+```
+
+The `monthly_submissions` constraint deliberately clears `returned_at` and `return_reason` on re-submission. History is retained in `audit_logs`; `submitted_at` means the timestamp of the current/latest successful submission. The application must allow only `DRAFT -> SUBMITTED`, `SUBMITTED -> RETURNED`, and `RETURNED -> SUBMITTED` transitions, atomically with an audit-log insert.
+
+The attendance submission lock and the calendar-derived set of required days span rows and tables. They are enforced by an application transaction with row locks, after the database constraints above have validated each record. A database trigger may additionally reject attendance writes whose matching submission is `SUBMITTED`, but authorization remains application-owned.
+
+## 5. Deadline and notification delivery
+
+`submission_deadlines` stores one explicit deadline per target month. `PUT /admin/deadlines/{month}` upserts the row; its first creation must use the default JST deadline above unless the administrator supplies a different JST instant. A deadline update is audit logged. The current month and the next 12 target months are provisioned idempotently by an application startup/admin maintenance transaction; existing rows are never overwritten by provisioning.
+
+For `POST /internal/jobs/monthly-reminders`, the job calculates the JST date and eligible stage (`D7`, `D3`, `D1`, or `DUE`) from the persisted `due_at`, selects active non-submitted employees, then performs this sequence per employee:
+
+1. In one transaction, insert a `notification_deliveries` row with `status = 'RESERVED'`, `notification_date` equal to the job's JST date, and the job `request_id`.
+2. If `UNIQUE(employee_id, notification_date)` conflicts, do not contact any Push endpoint for that employee that day.
+3. Commit the reservation before contacting the Push service. Insert one attempt row for every active `GRANTED` subscription selected for the reserved delivery.
+4. Mark the logical delivery `SENT`, `SKIPPED`, or `FAILED` with `completed_at`; a 404/410 endpoint response also invalidates that subscription in the same follow-up transaction.
+
+The reservation is never deleted or retried on the same JST date, including a process crash after reservation. Therefore a crash may cause a missed Push, but cannot make Clokka send a second notification request for that employee/date. This is the strongest practical at-most-once behavior available when the external Web Push provider does not participate in the database transaction. In-app warnings remain available and the administrator list remains the operational fallback.
+
+## 6. Push subscription storage and state
+
+`push_subscriptions` does **not** use `subscription_payload JSONB`; that former ERD field is removed. The subscription JSON `{ endpoint, keys: { p256dh, auth } }` is serialized by the application and encrypted as one payload with AES-256-GCM before it reaches PostgreSQL:
+
+| Column | Rule |
 | --- | --- |
-| `work_date` | `clock_in_at AT TIME ZONE 'Asia/Tokyo'`の日付と一致する。 |
-| 出退勤 | `clock_out_at > clock_in_at`、かつ経過時間は24時間未満。入力時に退勤時刻が出勤時刻以下なら翌日の退勤としてJSTで補正する。 |
-| 休憩 | `break_minutes >= 0`かつ、出勤から退勤までの総分未満。 |
-| 勤務時間 | `(clock_out_at - clock_in_at) - break_minutes`。DBへ冗長保存せず、読取時またはExcel出力時に計算する。 |
-| 提出対象 | `company_calendar`の`HOLIDAY`を除いた平日を既定の対象日とする。`WORKDAY_OVERRIDE`は土日でも対象日にする。 |
-| 提出可否 | 対象日に勤怠が存在し、出退勤・休憩制約を満たすこと。休暇は初期リリースで未実装のため、未入力例外にはならない（`D-03`）。 |
-| 編集可否 | 当月の`monthly_submissions.status`が`SUBMITTED`なら社員更新を拒否する。`RETURNED`または`DRAFT`のみ許可する。 |
+| `subscription_ciphertext BYTEA` | Ciphertext including the GCM authentication tag. `NOT NULL` only for active `GRANTED` rows. |
+| `subscription_iv BYTEA` | Per-write 96-bit random IV. `NOT NULL` only with ciphertext. |
+| `encryption_key_version SMALLINT` | Key identifier, `NOT NULL` only with ciphertext; enables controlled rotation. |
+| `permission_status` | `CHECK ('GRANTED','DENIED','DEFAULT','UNSUPPORTED')`. `UNKNOWN` is derived only when no row exists, never stored. |
+| `revoked_at`, `revocation_reason` | Retain invalidation history. `revocation_reason` is `USER_UNSUBSCRIBED`, `DELIVERY_GONE`, or `REPLACED`. |
 
-### `monthly_submissions`レコードの作成タイミング
+```sql
+ALTER TABLE push_subscriptions
+  ADD CONSTRAINT ck_push_payload_state
+    CHECK (
+      (permission_status = 'GRANTED' AND revoked_at IS NULL
+       AND subscription_ciphertext IS NOT NULL AND subscription_iv IS NOT NULL
+       AND encryption_key_version IS NOT NULL)
+      OR (permission_status IN ('DENIED','DEFAULT','UNSUPPORTED')
+       AND subscription_ciphertext IS NULL AND subscription_iv IS NULL
+       AND encryption_key_version IS NULL)
+    ),
+  ADD CONSTRAINT ck_push_revocation_reason
+    CHECK ((revoked_at IS NULL AND revocation_reason IS NULL)
+       OR (revoked_at IS NOT NULL
+         AND revocation_reason IS NOT NULL
+         AND revocation_reason IN ('USER_UNSUBSCRIBED','DELIVERY_GONE','REPLACED')));
+```
 
-月初に全社員分を一括作成せず、**対象月で最初に勤怠を保存した時**に、勤怠レコードと同一トランザクションで`DRAFT`レコードを作成する。対象月の提出操作時にレコードが未作成なら、まず提出前チェックを行う。チェックが失敗した場合はレコードを作成せず`422`を返し、成功した場合だけ同一トランザクションで`SUBMITTED`レコードを作成する。
+The encryption key is a 32-byte random key held only in the Render application environment as `PUSH_SUBSCRIPTION_ENCRYPTION_KEY`; it is never in PostgreSQL, Git, logs, API output, or audit JSON. The application has one current key version and may decrypt with an old version only for rotation. PostgreSQL backups therefore require the corresponding environment-key recovery procedure before restoration is considered complete.
 
-まだ勤怠も提出も行っておらずレコードが存在しない社員は、社員画面・管理画面では`DRAFT`（未提出・未入力）として扱う。管理一覧は`employees`を起点に`monthly_submissions`をLEFT JOINし、レコード未作成の社員を欠落させない。`GET`での画面表示はDBを書き換えない。
+`DELETE /push-subscriptions/{id}` means **revoke**, not physical delete: the authenticated owner row is changed to `DEFAULT`, ciphertext/IV/key-version are cleared, `revoked_at` is set, and an audit log is inserted. A 404/410 provider response follows the same invalidation with `DELIVERY_GONE`. A successful new subscription for the same installation replaces the prior state atomically, clears `revoked_at`, stores new encrypted data, and records an audit event. Current employee-level state is derived from non-deleted rows: active `GRANTED`, then any `DEFAULT`, then all `DENIED`, then all `UNSUPPORTED`, otherwise `UNKNOWN` when no installation has ever reported. Revoked rows count as `DEFAULT`, matching the approved requirements definition.
 
-| 操作 | `monthly_submissions`の扱い |
-| --- | --- |
-| 月次画面を表示するだけ | 作成しない。未作成は画面上`DRAFT`として表示する。 |
-| 対象月で初めて勤怠を保存する | `DRAFT`を作成し、勤怠保存と同時に確定する。 |
-| 未作成のまま提出する | 提出前チェックが失敗した場合は作成しない。成功時だけ`SUBMITTED`レコードを作成する。通常月の勤怠なし提出は未入力として`422`になる。 |
-| 管理者が一覧を見る | 作成しない。未作成社員も`DRAFT`として一覧に含める。 |
-| 管理者が差戻す | `SUBMITTED`レコードだけを`RETURNED`へ変更する。 |
+## 7. Indexes, roles, and immutable audit logs
 
-## 5. インデックスと保持
+Required indexes are `attendance_records(employee_id, work_date)`, `attendance_records(work_date)`, `monthly_submissions(target_month, status)`, `employees(department_id, is_active)`, `push_subscriptions(employee_id, permission_status)`, `notification_deliveries(target_month, status)`, `notification_delivery_attempts(delivery_id)`, `audit_logs(target_type, target_id, created_at DESC)`, and `audit_logs(actor_employee_id, created_at DESC)`. Unique keys above provide their own indexes.
 
-| テーブル | インデックス | 理由 |
-| --- | --- | --- |
-| `attendance_records` | `(employee_id, work_date)` UNIQUE、`(work_date)` | 月次一覧・管理者集計を高速化。 |
-| `monthly_submissions` | `(target_month, status)`、`(employee_id, target_month)` UNIQUE | 未提出一覧と社員の月次状態取得。 |
-| `employees` | `employee_code` UNIQUE、`(department_id, is_active)` | ログイン・部署フィルタ。 |
-| `push_subscriptions` | `(employee_id, permission_status)` | 通知拒否社員の集約。 |
-| `audit_logs` | `(target_type, target_id, created_at DESC)`、`(actor_employee_id, created_at DESC)` | 調査・監査画面。 |
+The Flyway/migration role (`clokka_owner`) owns tables and triggers. The runtime role (`clokka_app`) is not an owner; it receives only the necessary `SELECT`, `INSERT`, and controlled business-table `UPDATE` privileges. For `audit_logs`, it receives `SELECT, INSERT` only; `PUBLIC` receives no privileges. A trigger is defense in depth:
 
-`audit_logs`は更新不可とする。退職者を無効化しても勤怠・提出・監査履歴は削除しない。
+```sql
+CREATE FUNCTION reject_audit_log_mutation() RETURNS trigger
+LANGUAGE plpgsql AS $$
+BEGIN
+  RAISE EXCEPTION 'audit_logs are append-only';
+END;
+$$;
 
-### 複数端末の判定方法
+CREATE TRIGGER trg_audit_logs_immutable
+  BEFORE UPDATE OR DELETE ON audit_logs
+  FOR EACH ROW EXECUTE FUNCTION reject_audit_log_mutation();
+```
 
-Clokkaは端末固有情報・広告ID・ブラウザフィンガープリントを収集しない。通知設定画面を初めて開いたブラウザごとに、JavaScriptの`crypto.randomUUID()`で`installation_id`を生成し、そのブラウザのローカルストレージに保存する。通知状態やPush購読を報告する際には、ログイン済み社員IDとこの`installation_id`を必ず送る。
+The application connection must never use `clokka_owner`. Backup and restore procedures use privileged operational credentials outside normal runtime. Audit entries must exclude plaintext Push data and encryption material.
 
-同一社員に対して有効な`installation_id`が複数あれば、「複数端末（正確には複数のブラウザ設置）」として集約する。例として、同じ社員がiPhoneのSafariと会社PCのChromeで通知設定を行うと2件になる。同じブラウザでPush endpointが更新された場合は、同じ`installation_id`の行を更新するため、端末数は増えない。ローカルストレージ削除・ブラウザ再インストール後は新しい設置として扱い、古い購読はPush送信の失敗（410/404）時に`revoked_at`を設定して無効化する。
+## 8. Retention and open boundary
 
-社員単位のPush状態は、端末ごとの`push_subscriptions`から集約する。1件でも有効な`GRANTED`購読があれば`GRANTED`とする。購読がない場合は、`DEFAULT`の端末が1件でもあれば`DEFAULT`、すべての対応端末が`DENIED`なら`DENIED`、すべて非対応なら`UNSUPPORTED`、報告がなければ`UNKNOWN`とする。Push endpoint、鍵、購読ペイロードは管理画面に返さない。
-
-## 6. データ移行・AWS移行
-
-FlywayマイグレーションはRender/Neonと将来のAWS RDS PostgreSQLの双方で実行する。移行時は書込みを止め、`pg_dump --format=custom`と`pg_restore`で移送し、件数・月次提出数・監査ログ件数を照合する。
-
-| ID | 内容 | 状態 |
-| --- | --- | --- |
-| R-03 | 実社員データの保持期間・退職後の削除基準は未定。初期は社員を無効化し履歴を削除しない。正式運用開始前に会社の規程に基づく保持・削除方針を追加する。 | 受容済み・Phase 10前に再確認 |
+Employees, departments, attendance, submissions, Push-installation rows, notification deliveries, and audit logs are not physically deleted during the MVP. `R-03` remains open: the company must approve employee-data and backup retention/deletion periods before Phase 10. The design resolves notification idempotency (`KI-009` / `Q-06`) but does not resolve the separate legal retention-policy decision.

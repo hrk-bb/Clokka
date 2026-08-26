@@ -5,7 +5,7 @@
 | Purpose | Provide the next agent with a fact-based, immediately actionable project snapshot. |
 | Audience | AI agents, Product Owner, developers, reviewers. |
 | Update timing | At the end of every meaningful work session and before any handoff. |
-| Last repository audit | 2026-08-24. |
+| Last repository/design audit | 2026-08-26. |
 
 ## Current Phase
 
@@ -20,6 +20,7 @@ Design-first project. Phase 1 and Phase 2 are recorded as complete/approved by t
 - Phase 1 requirements/governance is recorded as completed.
 - Phase 2 architecture and technology selection is recorded as completed and approved.
 - Phase 3 review drafts exist for database, API, screen, and security design.
+- The Phase 3 DB/API/security design now specifies monthly-deadline persistence, encrypted Push subscription storage, reminder idempotency, and append-only audit enforcement. These individual design decisions are approved; whole-phase approval remains pending as `Q-01`.
 - The handoff audit documents and `AGENTS.md` were created on 2026-08-19 and synchronized with primary documents on 2026-08-24.
 
 ## In Progress
@@ -41,27 +42,26 @@ No technical blocker was verified. However, Phase 4+ is gated by Phase 3 review 
 | ID | Item |
 | --- | --- |
 | Q-01 | Phase 3 whole-phase approval after review of DB/API/UI/security and known documentation/design issues. |
-| Q-06 | Define and approve the persistence model for reminder-delivery history/idempotency. The API requires “no more than once per employee per day,” but no table/field is designed. |
 
 ## Current Task
 
-The immediately preceding development task was Phase 3 detailed-design review. The current handoff task was audit/documentation only; no product feature was implemented.
+The latest task refined the Phase 3 DB/API/security review design only. No product feature, schema migration, test, deployment, or operation was implemented.
 
 ## Next Task
 
-1. Read `known-issues.md` and validate the listed conflicts against primary documents.
-2. Present the Phase 3 review packet to the Product Owner, explicitly covering `Q-01` and `Q-06`.
+1. Review the 2026-08-26 DB/API/security design packet, especially its at-most-once notification trade-off and Push-key recovery requirement.
+2. Present the Phase 3 review packet to the Product Owner and obtain `Q-01` whole-phase approval.
 3. Only after approval, create Phase 4 documents (`08_directory.md` through `11_test-plan.md`) and request their review; do not create implementation code before that gate.
 
 ## Repository State
 
 | Item | Observed state |
 | --- | --- |
-| Branch | `.git/HEAD` points to `refs/heads/master`; no local ref file was present. Effective checked-out commit is **unverifiable**. |
-| Latest commit / recent history | **Unverifiable.** `git` executable is unavailable in this environment; `.git` has no `refs`, logs, index, or configured remote. Object files exist, but no reachable history was available. |
-| Remote / GitHub URL | No `[remote]` in `.git/config`. `hrk-bb/Clokka` is named in documents, but local linkage cannot be verified. Public web retrieval was unsuccessful; repository visibility/existence is **unverified**. |
-| Uncommitted changes | **Unverifiable by Git.** Files exist in the working directory, including the handoff documents created by this audit. No Git index is present. |
-| Source code | None found. `backend/` and `frontend/` contain `.gitkeep` only. |
+| Branch | `ai/agent-workflow-verification` at `3602764`; this design review has uncommitted documentation changes only. |
+| Latest commit / recent history | `3602764 chore: add opencode workflow verification record to README`; Git executable and reachable local history were verified on 2026-08-26. |
+| Remote / GitHub URL | `origin` fetch/push URL is `https://github.com/hrk-bb/Clokka.git`. Remote accessibility and Actions status were not rechecked in this design-only task. |
+| Uncommitted changes | The Phase 3 documentation changes listed in the latest design-review task are present and intentionally uncommitted. |
+| Source code | None found. `frontend/` and `backend/` are documented as unimplemented; no application source was added in this task. |
 | Tests | None found. No build/test configuration or test source exists. |
 | CI/CD | No workflow; `.github/workflows/` contains `.gitkeep` only. External Actions/deployment status is **unverifiable**. |
 | Docker / Render / Neon config | None found: no Dockerfile, Compose file, Render manifest, environment template, or Neon connection configuration. |
@@ -76,7 +76,7 @@ The immediately preceding development task was Phase 3 detailed-design review. T
 | `04_database.md`, `05_api.md`, `06_screen-design.md`, `07_security.md` | Phase 3 review drafts; not whole-phase approved. |
 | Japanese-named docs | Explicitly marked as history/initial outlines; current primary files are linked from their headers. |
 | Phase 4/5 docs | Missing; only Japanese placeholders exist for some intended topics. |
-| README | Exists but points to old `01_要件定義.md`, contrary to migration policy naming `01_requirements.md` as future primary source. |
+| README | Exists and links to `docs/01_requirements.md` as the primary design source. |
 
 ## Important Warnings
 
@@ -84,7 +84,7 @@ The immediately preceding development task was Phase 3 detailed-design review. T
 2. Do not start implementation until Phase 3 is explicitly approved.
 3. Do not silently alter the approved requirements or Phase 2 architecture.
 4. Do not put secrets or real employee data in source control.
-5. Do not write notification scheduling logic until delivery-history persistence is approved.
+5. Do not implement notification scheduling until Phase 3 is approved; its persistence model is now documented in the review design.
 
 ## Handoff Self-audit
 

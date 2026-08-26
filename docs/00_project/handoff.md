@@ -47,9 +47,9 @@ Clokka is a design-first attendance-management MVP. Phase 1 (requirements) and P
 Read `known-issues.md` before editing. Highest-priority items are:
 
 1. The repository has no implementation, tests, CI, Docker, or deployment configuration.
-2. Notification reminder history/idempotency is required by API/architecture but has no approved DB persistence model.
+2. The notification idempotency model is approved as an individual Phase 3 decision; it intentionally favors at-most-once Push attempts over retry after a crash. Whole-phase approval is still required.
 3. Data retention/deletion policy remains unresolved before formal operation.
-4. Git remote/history/working-tree status could not be verified in this environment.
+4. Push subscription encryption-key backup/recovery must be designed in Phase 5 before operations can be claimed.
 
 ## Important Decisions
 
@@ -76,13 +76,12 @@ See `decisions.md` for evidence and alternatives. Do not revise these silently:
 | --- | --- |
 | Q-01 | Approve/reject Phase 3 as a whole after reviewing DB/API/UI/security designs and audit issues. |
 | Q-05 | Before Phase 5/10: set employee-data retention/deletion policy (`R-03`) and production hosting/availability design (`R-02`, `R-05`). |
-| Q-06 | Define and approve reminder-delivery history/idempotency persistence for the “once per employee per day” requirement. |
 
 ## Immediate Next Actions
 
 1. Verify Git availability and restore/confirm the intended remote, branches, commits, and Actions visibility. Do not invent Git history.
-2. Read `known-issues.md`; prepare a concise Phase 3 review proposal without implementing software.
-3. Obtain Product Owner decisions for `Q-01` and `Q-06`.
+2. Read `known-issues.md`; review the Phase 3 DB/API/security packet without implementing software.
+3. Obtain Product Owner approval for `Q-01`; the at-most-once reminder and encrypted Push-subscription design are already approved individual decisions.
 4. If Phase 3 is approved, create Phase 4 governance/test documents and submit them for review.
 5. Only then begin Phase 6 foundation implementation under the approved Phase 4/5 rules.
 
