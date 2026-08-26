@@ -125,7 +125,7 @@ Clokkaは、社員約50名がスマートフォンまたはPCのブラウザか�
 | --- | --- |
 | FR-01、FR-10 | `02_architecture.md`、`05_api.md`、`07_security.md`、`11_test-plan.md` |
 | FR-02〜FR-06 | `04_database.md`、`05_api.md`、`06_screen-design.md`、`11_test-plan.md` |
-| FR-07、FR-08 | `02_architecture.md`、`06_screen-design.md`、`13_operation.md`、`11_test-plan.md` |
+| FR-07、FR-08 | `02_architecture.md`、`04_database.md`、`05_api.md`、`06_screen-design.md`、`07_security.md`、`13_operation.md`、`11_test-plan.md` |
 | FR-09、FR-11 | `04_database.md`、`05_api.md`、`11_test-plan.md` |
 | NFR-01〜NFR-06 | `03_tech-stack.md`、`07_security.md`、`11_test-plan.md`、`12_deployment.md`、`13_operation.md` |
 

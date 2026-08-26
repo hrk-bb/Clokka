@@ -118,3 +118,19 @@
 **Consequences:** Data retention/deletion remains unresolved (`R-03`).
 
 **Evidence:** `../01_requirements.md` D-06; `../02_architecture.md`; `../07_security.md`.
+
+## ADR-008 — Reminder-delivery idempotency and Push subscription protection
+
+**Decision:** Persist a monthly deadline for every target month. Use a durable, committed `notification_deliveries` reservation with `UNIQUE(employee_id, notification_date)` to provide at-most-once Push delivery attempts per employee and JST date. Persist per-subscription outcomes separately. Store the complete Web Push subscription only as application-layer AES-256-GCM ciphertext; retain revoked installation rows while clearing their encrypted subscription data. Make audit logs append-only through a non-owner runtime DB role plus a rejecting database trigger.
+
+**Status:** APPROVED as a Phase 3 design decision; whole-phase approval remains `Q-01`.
+
+**Date:** 2026-08-26.
+
+**Reason:** Resolve the review findings for deadline persistence, reminder deduplication, Push subscription inconsistency/protection, database-enforced integrity, and audit immutability without adding paid infrastructure.
+
+**Alternatives:** Retrying notifications until provider success (rejected because it can duplicate a notification); plaintext structured Push columns (rejected because endpoint and keys are sensitive); PostgreSQL-held encryption keys or paid KMS (rejected for the MVP's security and free-operation goals); physical deletion of subscriptions (rejected because it loses state/history).
+
+**Consequences:** A crash after reservation may result in a missed Push, but not a second request for the same employee/JST date. Push-key recovery becomes a Phase 5 operational requirement. `R-03` remains unresolved because it concerns retention periods, not idempotency or storage security.
+
+**Evidence:** `../04_database.md`, `../05_api.md`, `../07_security.md`, review direction recorded on 2026-08-26.

@@ -6,12 +6,12 @@
 | 対象読者 | フロントエンド/バックエンド開発者、テスト担当者、レビュー担当者 |
 | 更新タイミング | エンドポイント、認可、入出力、エラー形式を変更する時 |
 | 状態 | レビュー・承認待ち |
-| 最終更新日 | 2026-08-06 |
+| 最終更新日 | 2026-08-26 |
 
 ## 1. 共通規約
 
 - ベースURLは`/api/v1`。UIと同一オリジンで提供する。
-- JSONはUTF-8、日時はISO 8601 UTC、勤務日は`YYYY-MM-DD`（JST）とする。
+- JSONはUTF-8、応答日時はISO 8601 UTC、勤務日は`YYYY-MM-DD`（JST）とする。締切更新の`dueAt`だけはJSTを明示したISO 8601の`+09:00`オフセットを必須とする。
 - 認証は`HttpOnly; Secure; SameSite=Lax`のセッションCookie。状態変更リクエストにはCSRFトークンを必須とする。
 - すべてのレスポンスに`X-Request-Id`を付け、監査・障害調査に使う。
 - エラー形式は`{ "code": "ATTENDANCE_LOCKED", "message": "提出済みの月は編集できません。", "fieldErrors": [] }`とする。
@@ -57,11 +57,11 @@
 | --- | --- | --- |
 | `PUT /push-subscriptions/status` | 社員 | `installationId`とブラウザの通知許可状態（`DENIED`/`DEFAULT`/`UNSUPPORTED`）を報告する。購読なしの`GRANTED`は`DEFAULT`として扱う。 |
 | `POST /push-subscriptions` | 社員 | `installationId`とVAPID購読情報を登録・更新する。登録成功時にだけ`GRANTED`とする。 |
-| `DELETE /push-subscriptions/{id}` | 社員 | 端末購読を解除する。 |
+| `DELETE /push-subscriptions/{id}` | 社員 | 自分の端末購読を論理解除する。物理削除は行わず、購読データを消去して端末状態を`DEFAULT`へ遷移させる。 |
 
 ブラウザがPushを未対応、または一度も状態を報告していない社員は、管理者一覧でそれぞれ`UNSUPPORTED`、`UNKNOWN`として扱う。複数端末では有効購読が1件でもあれば`GRANTED`、なければ`DEFAULT`端末が1件でもあれば`DEFAULT`、すべての対応端末が`DENIED`なら`DENIED`、すべて非対応なら`UNSUPPORTED`、報告がなければ`UNKNOWN`とする。
 
-`installationId`はブラウザ初回設定時に生成するランダムUUIDであり、物理端末情報やフィンガープリントではない。同一`employeeId`と`installationId`の報告はupsertし、同じブラウザでPush endpointが変わっても1設置として扱う。
+`installationId`はブラウザ初回設定時に生成するランダムUUIDであり、物理端末情報やフィンガープリントではない。同一`employeeId`と`installationId`の報告はupsertし、同じブラウザでPush endpointが変わっても1設置として扱う。Push購読のendpoint・鍵はレスポンス、監査ログ、アプリケーションログへ含めない。
 
 ## 5. 管理API
 
@@ -73,11 +73,14 @@
 | `GET /admin/exports/attendance.xlsx?month=&departmentId=&status=` | 管理者 | フィルタ済み月次Excelをストリーム返却し、出力監査ログを残す。 |
 | `GET/POST/PATCH /admin/employees` | 管理者 | 社員作成、一覧、無効化、部署・権限変更。パスワードは読み出さない。 |
 | `GET/POST/PATCH /admin/calendar` | 管理者 | 会社休日・勤務日例外を管理する。 |
-| `GET/PUT /admin/deadlines/{month}` | 管理者 | 月次締切を取得・更新する。 |
+| `GET /admin/deadlines/{month}` | 管理者 | 対象月の永続化済み締切を返す。`dueAt`はISO 8601 UTC、画面表示と入力基準はJST。 |
+| `PUT /admin/deadlines/{month}` | 管理者 | 月次締切を作成・更新する。本文の`dueAt`はJSTオフセット付き日時を必須とし、変更は監査ログへ記録する。 |
 
 ## 6. 定時ジョブAPI
 
-`POST /internal/jobs/monthly-reminders`はGitHub Actionsだけが呼び出す。`X-Job-Secret`が一致せず、または呼出元のレート制限に違反した場合は`401/429`とする。対象月・通知済み履歴をトランザクションで確定し、同一社員へ同日2回送らない。
+`POST /internal/jobs/monthly-reminders`はGitHub Actionsだけが呼び出す。`X-Job-Secret`が一致せず、または呼出元のレート制限に違反した場合は`401/429`とする。ジョブは、対象月の永続化済み締切とJST日付から通知段階を判定する。
+
+社員ごとに、Pushサービスへの送信前に`notification_deliveries`へ`UNIQUE(employee_id, notification_date)`を満たす予約をトランザクションで確定する。競合した場合はその社員へ当日中に再送しない。予約のコミット後に全ての有効購読端末へ送信し、論理送信と端末別試行の結果を記録する。外部Push送信後のクラッシュでは送達漏れを許容し、重複送信を避けるat-most-once方式とする。
 
 ## 7. HTTP状態コード
 
