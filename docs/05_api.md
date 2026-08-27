@@ -29,12 +29,12 @@
 
 | Method / Path | 権限 | 概要・主な応答 |
 | --- | --- | --- |
-| `GET /attendance?month=YYYY-MM` | 社員 | 自分の月次日別勤怠、対象日、未入力日、合計勤務時間、提出状態。 |
-| `PUT /attendance/{workDate}` | 社員 | 指定勤務日の勤怠をupsertする。`clockIn`, `clockOut`, `breakMinutes`, `note`を受け取る。提出済み月は`409 ATTENDANCE_LOCKED`。 |
-| `DELETE /attendance/{workDate}` | 社員 | 提出前の勤怠を削除する。監査ログを残す。 |
-| `POST /submissions/{month}/validate` | 社員 | 提出前チェック。未入力日・不正項目を返す。状態は変更しない。 |
-| `POST /submissions/{month}` | 社員 | チェック成功時に`DRAFT/RETURNED`から`SUBMITTED`へ遷移する。 |
-| `GET /submissions/{month}` | 社員 | 自分の対象月の提出状態・差戻し理由を返す。 |
+| `GET /attendance?month=YYYY-MM` | ログイン済み（自分。EMPLOYEE/ADMIN） | 自分の月次日別勤怠、対象日、未入力日、合計勤務時間、提出状態。 |
+| `PUT /attendance/{workDate}` | ログイン済み（自分。EMPLOYEE/ADMIN） | 指定勤務日の勤怠をupsertする。`clockIn`, `clockOut`, `breakMinutes`, `note`を受け取る。提出済み月は`409 ATTENDANCE_LOCKED`。 |
+| `DELETE /attendance/{workDate}` | ログイン済み（自分。EMPLOYEE/ADMIN） | 提出前の勤怠を削除する。監査ログを残す。 |
+| `POST /submissions/{month}/validate` | ログイン済み（自分。EMPLOYEE/ADMIN） | 提出前チェック。未入力日・不正項目を返す。状態は変更しない。 |
+| `POST /submissions/{month}` | ログイン済み（自分。EMPLOYEE/ADMIN） | チェック成功時に`DRAFT/RETURNED`から`SUBMITTED`へ遷移する。 |
+| `GET /submissions/{month}` | ログイン済み（自分。EMPLOYEE/ADMIN） | 自分の対象月の提出状態・差戻し理由を返す。 |
 
 `PUT /attendance/{workDate}`の例：
 
