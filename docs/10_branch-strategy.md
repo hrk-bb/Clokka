@@ -1,69 +1,69 @@
-# Clokka Branch Strategy and Git Rules (Phase 4)
+# Clokka ブランチ戦略とGitルール（Phase 4）
 
-| Item | Value |
+| 項目 | 内容 |
 | --- | --- |
-| Purpose | Define how AI and humans create branches, commits, and PRs without history pollution or secret leaks. |
-| Audience | Developers, AI agents, reviewers |
-| Status | REVIEW — awaiting Q-04 |
-| Last updated | 2026-08-28 |
-| Depends on | `08_directory.md`, `09_development-rules.md`, `AGENTS.md` |
+| 目的 | AI・人間が履歴を汚染せず秘密情報を漏らさずにブランチ、コミット、PRを作成する方法を定義する。 |
+| 対象読者 | 開発者、AIエージェント、レビュー担当者 |
+| 状態 | レビュー待ち — Q-04承認待ち |
+| 最終更新日 | 2026-08-28 |
+| 依存関係 | `08_directory.md`、`09_development-rules.md`、`AGENTS.md` |
 
-## 1. Branch model
+## 1. ブランチモデル
 
-* **Main branch:** `main` (protected). Direct push is forbidden; all changes go via PR. `main` is always deployable to Render and always passes CI.
-* **Feature branches:** `feat/<short-topic>` or `ai/<topic>` for AI work. Examples: `feat/attendance-validation`, `ai/fix-push-encryption`.
-* **Fix branches:** `fix/<short-topic>` for bug fixes on `main`.
-* **Docs-only branches:** `docs/<short-topic>` for documentation changes.
-* **No long-lived branches.** A feature branch lives < 3 days or < 300 LOC changed; split if larger.
-* **No `develop` branch** in the MVP (single `main` + short branches keeps Render's GitHub auto-deploy simple).
+* **メインブランチ:** `main`（保護）。直接pushは禁止し、すべての変更はPR経由。`main` は常にRenderへデプロイ可能で、常にCIが成功する状態を保つ。
+* **機能ブランチ:** `feat/<短いトピック>` またはAI作業では `ai/<トピック>`。例: `feat/attendance-validation`、`ai/fix-push-encryption`。
+* **修正ブランチ:** `fix/<短いトピック>`（`main` のバグ修正）。
+* **ドキュメント専用ブランチ:** `docs/<短いトピック>`。
+* **長期ブランチを作らない。** 1ブランチは3日以内または300 LOC以内とし、超える場合は分割する。
+* **MVPでは `develop` ブランチは持たない。** `main` 単独 + 短期ブランチにすることでRenderのGitHub自動デプロイを単純に保つ。
 
-## 2. From branch to PR
+## 2. ブランチからPRまでの流れ
 
 ```
-main (protected)
+main（保護）
   └─ feat/xxx  ──PR──► main
 ```
 
 1. `git fetch origin && git checkout -b feat/xxx origin/main`
-2. Small commits on the branch (see §4)
-3. `git push -u origin feat/xxx` and open a PR via `gh pr create` (or GitHub UI)
-4. PR must be **reviewed by one human or one designated AI reviewer** before merge
-5. Merge via **Squash and merge** (keeps `main` linear). The squash commit message is the PR title.
+2. ブランチ上で小さなコミットを積む（§4参照）
+3. `git push -u origin feat/xxx` し `gh pr create`（またはGitHub UI）でPR作成
+4. PRは**1名の人間または指名されたAIレビュー担当者**のレビューを経る
+5. マージは **Squash and merge**（`main` を直線的に保つ）。スカッシュ後のコミットメッセージはPRタイトルとする。
 
-## 3. Commit rules
+## 3. コミット規約
 
-* **One purpose per commit.** `feat:`, `fix:`, `docs:`, `chore:`, `test:`, `refactor:` prefixes. Examples:
+* **1コミット1目的。** 接頭辞 `feat:`、`fix:`、`docs:`、`chore:`、`test:`、`refactor:`。例:
   * `feat: add attendance PUT validation`
   * `fix: reject attendance write when submission is SUBMITTED`
   * `docs: update 04_database DDL for break check`
-* **No secrets, no employee data, no `.env`.** The pre-commit hook (added in Phase 6) must reject `*.env`, `*.pem`, `*.key`, and files matching `*_test.csv` containing real names.
-* **No `Co-authored-by` noise** unless pairing.
-* **No force-push to `main`.** Force-push on a feature branch is allowed only before review starts.
+* **秘密情報、社員データ、`.env` をコミットしない。** Phase 6で追加される pre-commitフックは `*.env`、`*.pem`、`*.key` および実名を含む `*_test.csv` を拒否する。
+* **不要な `Co-authored-by` は付けない**（ペア作業を除く）。
+* ** `main` へのforce-push禁止。** レビュー前のfeatureブランチでのforce-pushは許可する。
 
-## 4. PR rules
+## 4. PR規約
 
-* **Template:** `.github/pull_request_template.md` must be filled. Every PR describes: purpose, related FR/ADR/Q, testing done, and whether secrets/migrations are involved.
-* **Size:** < 400 lines of production code (excluding generated migrations). Larger PRs must be split.
-* **Checks:** `ci.yml` must be green (build + test + secret scan). A PR with a failing CI is not reviewed.
-* **Review:** At least one approval. Reviewers check `AGENTS.md:5` (no guessing, no silent contract changes) and `09_development-rules.md:3-6`.
-* **Do not mark as draft** to bypass CI. Draft is only for early feedback.
+* **テンプレート:** `.github/pull_request_template.md` を必ず埋める。PRごとに目的、関連するFR/ADR/Q、テスト内容、秘密情報/マイグレーションの有無を記述する。
+* **サイズ:** 本番コード400行以内（生成されたマイグレーションを除く）。超える場合は分割する。
+* **チェック:** `ci.yml` がグリーン（ビルド + テスト + 秘密情報スキャン）でなければレビューしない。
+* **レビュー:** 1名以上の承認を必須とする。レビューでは `AGENTS.md:5`（推測しない、契約を無断変更しない）と `09_development-rules.md:3-6` を確認する。
+* **CI回避のためのDraft化禁止。** Draftは早期フィードバック用のみ。
 
-## 5. Tags and releases
+## 5. タグとリリース
 
-* No tags in Phase 6–9. Tag `v0.1.0-mvp` is created only at Phase 10 production deployment, after PO release approval.
+* Phase 6〜9ではタグを切らない。タグ `v0.1.0-mvp` は Phase 10の本番デプロイでPOのリリース承認後にのみ作成する。
 
-## 6. Local Git hygiene
+## 6. ローカルでのGit運用
 
-* `core.autocrlf=input` on macOS/Linux, `core.autocrlf=true` on Windows (or rely on `.editorconfig` `lf`). Do not commit CRLF-only changes.
-* `git config pull.rebase false` (merge pull) is fine for this repo; no rebase of `main` onto feature branches after review has started.
-* Keep `git fetch --prune` hygiene; delete merged branches with `git branch -d`.
+* `core.autocrlf=input`（macOS/Linux）、`core.autocrlf=true`（Windows）（または `.editorconfig` の `lf` に依存）。CRLFのみの変更をコミットしない。
+* `git config pull.rebase false`（merge pull）でよい。本レビュー開始後に `main` をfeatureブランチへrebaseしない。
+* `git fetch --prune` を習慣化し、マージ済みブランチは `git branch -d` で削除する。
 
-## 7. What is forbidden
+## 7. 禁止事項
 
-* Direct push to `main`, force-push to `main`, or merging one's own PR without review.
-* Committing `V{NN}__` migrations that have already been merged to `main` (they are immutable).
-* Committing `frontend/node_modules/`, `build/`, `out/`, or IDE files (they are `.gitignore`d).
+* `main` への直接push、`main` へのforce-push、レビューなしでの自己マージ。
+* `main` にマージ済みの `V{NN}__` マイグレーションのコミット（不変）。
+* `frontend/node_modules/`、`build/`、`out/`、IDEファイルのコミット（`.gitignore` 対象）。
 
-## 8. Verification before Phase 6
+## 8. Phase 6前の検証
 
-Create a throwaway branch `docs/test-branch-strategy` from `main`, push, open a PR, see `ci.yml` (added in Phase 6) run, then close without merging. This verifies branch protections without polluting `main`.
+使い捨てのブランチ `docs/test-branch-strategy` を `main` から作成し、push、PR作成、`ci.yml`（Phase 6で追加）の実行を確認した後、マージせずにクローズする。これにより `main` を汚さずにブランチ保護を検証できる。

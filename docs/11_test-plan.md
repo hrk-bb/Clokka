@@ -1,73 +1,73 @@
-# Clokka Test Plan (Phase 4 — levels and traceability)
+# Clokka テスト計画（Phase 4 — レベルとトレーサビリティ）
 
-| Item | Value |
+| 項目 | 内容 |
 | --- | --- |
-| Purpose | Define what to test, at which level, and how to trace a requirement to a passing test without inventing implementation details. |
-| Audience | Developers, AI agents, QA, Product Owner |
-| Status | REVIEW — awaiting Q-04 |
-| Last updated | 2026-08-28 |
-| Depends on | `01_requirements.md`, `04_database.md`, `05_api.md`, `06_screen-design.md`, `07_security.md`, `08_directory.md`, `09_development-rules.md` |
+| 目的 | 何をどのレベルでテストし、要件からテスト成功までの追跡を実装の詳細を捏造せずに定義する。 |
+| 対象読者 | 開発者、AIエージェント、QA、プロダクトオーナー |
+| 状態 | レビュー待ち — Q-04承認待ち |
+| 最終更新日 | 2026-08-28 |
+| 依存関係 | `01_requirements.md`、`04_database.md`、`05_api.md`、`06_screen-design.md`、`07_security.md`、`08_directory.md`、`09_development-rules.md` |
 
-## 1. Test levels
+## 1. テストレベル
 
-| Level | Scope | Technology | When it runs | Who owns |
+| レベル | 対象範囲 | 技術 | 実行タイミング | 責任者 |
 | --- | --- | --- | --- | --- |
-| Unit | Single class / function (e.g., JST work-date calc, break validation) | JUnit 5, Mockito | `./gradlew test` (CI and local) | Developer |
-| Integration (slice) | Spring slice + real PostgreSQL via Testcontainers | Spring Boot Test, Testcontainers `postgres:16`, Flyway migrations, RestAssured/MockMvc | `./gradlew test` (CI) | Developer |
-| API (contract) | Full `backend` against `05_api.md` contracts (auth, attendance, submission, admin, push, deadlines, reminders, audit) | Testcontainers, MockMvc, AssertJ | `./gradlew test` and nightly CI | Developer |
-| E2E (browser) | `frontend` + `backend` + DB via Playwright | Playwright (Phase 9) | `npx playwright test` (Phase 9, not Phase 6) | QA / AI |
-| Security / load | Auth bypass, CSRF, rate-limit, 50×31 Excel | OWASP ZAP (optional), JMeter/k6 (Phase 9) | Phase 9 | QA |
+| 単体 | 単一クラス/関数（例: JSTのwork_date計算、休憩検証） | JUnit 5、Mockito | `./gradlew test`（CIおよびローカル） | 開発者 |
+| 結合（スライス） | Springスライス + Testcontainersによる実PostgreSQL | Spring Boot Test、Testcontainers `postgres:16`、Flyway、RestAssured/MockMvc | `./gradlew test`（CI） | 開発者 |
+| API（契約） | `05_api.md` の契約に対する `backend` 全体（認証、勤怠、提出、管理、Push、締切、リマインド、監査） | Testcontainers、MockMvc、AssertJ | `./gradlew test` および毎晩のCI | 開発者 |
+| E2E（ブラウザ） | `frontend` + `backend` + DB（Playwright） | Playwright（Phase 9） | `npx playwright test`（Phase 9、Phase 6ではない） | QA / AI |
+| セキュリティ/負荷 | 認証バイパス、CSRF、レート制限、50名×31日のExcel | OWASP ZAP（任意）、JMeter/k6（Phase 9） | Phase 9 | QA |
 
-* No manual `curl` as a substitute for an automated test. Every FR must have at least one automated test at the appropriate level.
-* `frontend` unit tests (Vitest/Jest) are **not used** in the MVP — Vanilla JS is tested via integration/API and E2E.
+* 手動の `curl` を自動テストの代替としない。すべてのFRは適切なレベルで少なくとも1つの自動テストを持つこと。
+* `frontend` の単体テスト（Vitest/Jest）はMVPでは**使わない** — Vanilla JSは結合/APIとE2Eでテストする。
 
-## 2. Traceability matrix (FR → test)
+## 2. トレーサビリティ（FR → テスト）
 
-| Requirement | Unit | Integration | API | E2E (Phase 9) |
+| 要件 | 単体 | 結合 | API | E2E（Phase 9） |
 | --- | --- | --- | --- | --- |
-| FR-01 Auth/roles | Argon2id vector, session cookie flags | `POST /auth/login` success/failure, `GET /me` roles | `401`/`403` matrix, CSRF, IDOR | Login S-01, 401 redirect, 403 page |
-| FR-02，日次入力 | JST `work_date` calc, `clock_out - clock_in < 24h`, `break < elapsed` | `PUT /attendance/{workDate}` upsert, `UNIQUE(employee_id,work_date)` | `409` when `status=SUBMITTED` | S-03 save/delete, validation messages |
-| FR-03 日跨ぎ | `23:00→02:00` maps to start date | Same via DB `CHECK ck_attendance_work_date_jst` | API `clockOut <= clockIn` treated as next day | S-03 next-day hint, S-02 monthly view |
-| FR-04 月次表示 | `target_month = date_trunc` | `GET /attendance?month=` returns target days, `DRAFT` display | `GET /submissions/{month}` | S-02 month navigation, totals |
-| FR-05 提出前チェック | Calendar-derived required days | `POST /submissions/{month}/validate` returns `422` with `fieldErrors` | `422` body | S-04 validation list, links to S-03 |
-| FR-06 提出/差戻し | Status FSM `DRAFT→SUBMITTED→RETURNED→SUBMITTED` | `POST /submissions`, `POST /admin/.../return` with audit | `409` on concurrent transition | S-04 submit, S-06 return, S-02 lock |
-| FR-07 通知漏れ防止 | `reminder_stage` calc from `due_at` | `notification_deliveries` `UNIQUE(employee_id,notification_date)` | `POST /internal/jobs/monthly-reminders` idempotency | S-05 Push state, S-07 list, in-app banner |
-| FR-08 管理一覧 | Sort comparator | `GET /admin/submissions` filters, sorting, pagination | `X-Request-Id` present | S-06 search/sort |
-| FR-12 Push状態 | Aggregation `GRANTED>DEFAULT>DENIED>UNSUPPORTED>UNKNOWN` | `push_subscriptions` encrypt/decrypt, `PUT /push-subscriptions/status` | `GET /admin/push-status?status=DENIED` | S-07 filtered view |
-| FR-09 Excel | `workMinutes = elapsed - break` | `GET /admin/exports/attendance.xlsx` streams XLSX, audit logged | `Content-Disposition` + audit | S-06 Excel download |
-| FR-10 管理設定 | `is_active` toggle | `POST/PATCH /admin/employees`, `.../calendar`, `.../deadlines/{month}` | `PUT dueAt +09:00` handling | S-08, S-09, S-10 |
-| FR-11 監査 | `actor_type` CHECK | `audit_logs` trigger rejects UPDATE/DELETE, `GRANT` | All mutating endpoints insert audit | Audit log query (internal) |
-| NFR-02 性能 | — | — | 50×31 Excel < 30s (API test with timer) | Playwright 360px + Chrome/Edge/Safari |
+| FR-01 認証/権限 | Argon2idベクタ、セッションCookie属性 | `POST /auth/login` 成功/失敗、`GET /me` の権限 | `401`/`403` マトリクス、CSRF、IDOR | ログインS-01、401リダイレクト、403画面 |
+| FR-02 日次入力 | JSTの `work_date` 計算、`clock_out - clock_in < 24h`、`break < elapsed` | `PUT /attendance/{workDate}` のupsert、`UNIQUE(employee_id,work_date)` | `status=SUBMITTED` 時の `409` | S-03の保存/削除、検証メッセージ |
+| FR-03 日跨ぎ | `23:00→02:00` が開始日に紐づく | 同上（DBの `CHECK ck_attendance_work_date_jst` 経由） | APIの `clockOut <= clockIn` は翌日として扱う | S-03の翌日ヒント、S-02の月次表示 |
+| FR-04 月次表示 | `target_month = date_trunc` | `GET /attendance?month=` が対象日と `DRAFT` 表示を返す | `GET /submissions/{month}` | S-02の月移動、合計表示 |
+| FR-05 提出前チェック | 休日由来の必須日 | `POST /submissions/{month}/validate` が `422` と `fieldErrors` を返す | `422` のボディ | S-04の検証リスト、S-03へのリンク |
+| FR-06 提出/差戻し | 状態FSM `DRAFT→SUBMITTED→RETURNED→SUBMITTED` | `POST /submissions`、`POST /admin/.../return` と監査 | 同時遷移時の `409` | S-04提出、S-06差戻し、S-02ロック |
+| FR-07 通知漏れ防止 | `due_at` からの `reminder_stage` 算出 | `notification_deliveries` の `UNIQUE(employee_id,notification_date)` | `POST /internal/jobs/monthly-reminders` の冪等性 | S-05のPush状態、S-07一覧、アプリ内バナー |
+| FR-08 管理一覧 | ソート比較 | `GET /admin/submissions` のフィルタ、ソート、ページング | `X-Request-Id` の存在 | S-06の検索/ソート |
+| FR-12 Push状態 | 集約 `GRANTED>DEFAULT>DENIED>UNSUPPORTED>UNKNOWN` | `push_subscriptions` の暗号化/復号、`PUT /push-subscriptions/status` | `GET /admin/push-status?status=DENIED` | S-07の絞り込み表示 |
+| FR-09 Excel | `workMinutes = elapsed - break` | `GET /admin/exports/attendance.xlsx` がXLSXをストリームし監査が残る | `Content-Disposition` + 監査 | S-06のExcelダウンロード |
+| FR-10 管理設定 | `is_active` 切替 | `POST/PATCH /admin/employees`、`.../calendar`、`.../deadlines/{month}` | `PUT dueAt +09:00` の扱い | S-08、S-09、S-10 |
+| FR-11 監査 | `actor_type` のCHECK | `audit_logs` のトリガーがUPDATE/DELETEを拒否、`GRANT` | 変更系エンドポイントは全て監査を挿入 | 監査ログ照会（内部） |
+| NFR-02 性能 | — | — | 50名×31日のExcelが30秒以内（タイマー付きAPIテスト） | Playwrightの360px + Chrome/Edge/Safari |
 
-## 3. Database contract tests (must pass before any feature)
+## 3. データベース契約テスト（機能より先に必ず成功させること）
 
-* Flyway `V1`–`V3` apply on a fresh `postgres:16` via Testcontainers.
-* `CHECK` constraints from `04_database.md:4` are exercised: `ck_attendance_work_date_jst` with JST boundary (`23:00 JST = 14:00 UTC`), `ck_submission_status_fields`, `ck_notification_*`, `ck_push_payload_state`, and the `audit_logs` trigger.
-* Roles: `clokka_app` can `SELECT, INSERT` on `audit_logs` but `UPDATE`/`DELETE` is rejected by the trigger; `PUBLIC` has no privileges.
+* 新品の `postgres:16`（Testcontainers）にFlyway `V1`〜`V3` を適用する。
+* `04_database.md:4` の `CHECK` 制約を検証する：JST境界（`23:00 JST = 14:00 UTC`）での `ck_attendance_work_date_jst`、`ck_submission_status_fields`、`ck_notification_*`、`ck_push_payload_state`、および `audit_logs` トリガー。
+* ロール：`clokka_app` は `audit_logs` に対して `SELECT, INSERT` はできるが `UPDATE`/`DELETE` はトリガーで拒否される。`PUBLIC` に権限は与えない。
 
-## 4. Push encryption tests
+## 4. Push暗号化テスト
 
-* A subscription JSON is encrypted with `AES-GCM` (12-byte IV) and decrypted with the same `key_version`; decryption with a wrong key fails with `AEADBadTagException`.
-* `DELETE /push-subscriptions/{id}` clears `ciphertext/iv/version` and sets `revoked_at`; `GET /admin/push-status` never returns plaintext endpoint/keys.
+* 購読JSONは `AES-GCM`（12バイトIV）で暗号化し、同じ `key_version` で復号できること。異なる鍵での復号は `AEADBadTagException` で失敗すること。
+* `DELETE /push-subscriptions/{id}` は `ciphertext/iv/version` をクリアし `revoked_at` を設定すること。`GET /admin/push-status` は平文のendpoint/鍵を決して返さないこと。
 
-## 5. API test conventions
+## 5. APIテスト規約
 
-* Base URL `http://localhost:8080/api/v1` (Testcontainers) with `HttpOnly` session cookie + `X-CSRF-Token` header.
-* Every test asserts `X-Request-Id` is present on 2xx and 4xx.
-* `401` vs `403` vs `404` are tested via the matrix in `07_security.md:2` (IDOR, disabled admin, CSRF).
-* `notification_deliveries` at-most-once is tested by firing `POST /internal/jobs/monthly-reminders` twice with the same `notification_date` and asserting the second run inserts zero `RESERVED` rows.
+* ベースURL `http://localhost:8080/api/v1`（Testcontainers）で、`HttpOnly` セッションCookie + `X-CSRF-Token` ヘッダを使用する。
+* すべてのテストで2xxおよび4xxに `X-Request-Id` が存在することを検証する。
+* `401` vs `403` vs `404` は `07_security.md:2` のマトリクス（IDOR、無効化された管理者、CSRF）でテストする。
+* `notification_deliveries` のat-most-onceは、同じ `notification_date` で `POST /internal/jobs/monthly-reminders` を2回実行し、2回目は `RESERVED` 行が0件挿入されることで検証する。
 
-## 6. Frontend / E2E (Phase 9)
+## 6. フロントエンド / E2E（Phase 9）
 
-* Playwright covers S-01 → S-02/S-06, S-03 save, S-04 submit, S-06 return, and 360px responsive per `06_screen-design.md:6` and `NFR-01`.
-* No `frontend` unit tests in the MVP; E2E plus API coverage is sufficient for 50 users.
+* Playwrightで S-01 → S-02/S-06、S-03保存、S-04提出、S-06差戻し、および `06_screen-design.md:6` と `NFR-01` の360pxレスポンシブをカバーする。
+* MVPでは `frontend` の単体テストは行わない。50名規模ではE2EとAPIカバレッジで十分である。
 
-## 7. CI quality gates (added in Phase 6)
+## 7. CI品質ゲート（Phase 6で追加）
 
-* `ci.yml` runs `./gradlew check` (Spotless + test + Testcontainers) and a secret scan (e.g., `gitleaks` or `trufflehog`). A PR is not mergeable if any gate fails.
-* Test reports and coverage (JaCoCo, optional) are uploaded as artifacts.
+* `ci.yml` は `./gradlew check`（Spotless + テスト + Testcontainers）と秘密情報スキャン（例 `gitleaks` や `trufflehog`）を実行する。いずれかが失敗したPRはマージ不可とする。
+* テストレポートとカバレッジ（JaCoCo、任意）は成果物としてアップロードする。
 
-## 8. What is not tested in Phase 4
+## 8. Phase 4でテストしないこと
 
-* No code is written; this plan is a contract for Phase 6–9. No `V{NN}__` files, no `*Test.java` are created in Phase 4.
-* Load and security scans are Phase 9 only, not Phase 6.
+* コードは書かない。本計画はPhase 6〜9の契約である。Phase 4で `V{NN}__` ファイルや `*Test.java` は作成しない。
+* 負荷・セキュリティスキャンはPhase 9のみであり、Phase 6ではない。

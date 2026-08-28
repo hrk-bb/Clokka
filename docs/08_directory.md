@@ -1,154 +1,154 @@
-# Clokka Directory Design (Phase 4)
+# Clokka ディレクトリ設計（Phase 4）
 
-| Item | Value |
+| 項目 | 内容 |
 | --- | --- |
-| Purpose | Define the repository file layout that an AI or human developer can follow without guessing where to place or find code, tests, migrations, docs, and CI. |
-| Audience | Developers, AI agents, reviewers, Product Owner |
-| Status | REVIEW — awaiting Q-04 |
-| Last updated | 2026-08-28 |
-| Depends on | `01_requirements.md`, `02_architecture.md`, `03_tech-stack.md`, `04_database.md`, `05_api.md`, `06_screen-design.md`, `07_security.md` |
+| 目的 | AI・人間の開発者が、コード・テスト・マイグレーション・ドキュメント・CIの配置場所を推測なく把握できるリポジトリ構成を定義する。 |
+| 対象読者 | 開発者、AIエージェント、レビュー担当者、プロダクトオーナー |
+| 状態 | レビュー待ち — Q-04承認待ち |
+| 最終更新日 | 2026-08-28 |
+| 依存関係 | `01_requirements.md`、`02_architecture.md`、`03_tech-stack.md`、`04_database.md`、`05_api.md`、`06_screen-design.md`、`07_security.md` |
 
-## 1. Top-level layout
+## 1. トップレベル構成
 
 ```
 Clokka/
 ├── .github/
-│   ├── workflows/          # GitHub Actions (CI, scheduled reminders)
+│   ├── workflows/          # GitHub Actions（CI、定時リマインド）
 │   └── pull_request_template.md
-├── backend/                # Spring Boot application (Java 21)
-├── frontend/               # Vanilla JS UI (HTML/CSS/ES Modules)
-├── docs/                   # Design and project docs (this directory)
-│   ├── 00_project/         # Current-state, handoff, decisions, roadmap, known-issues
-│   ├── 00_プロジェクトロードマップ.md # Original Japanese roadmap (history)
+├── backend/                # Spring Bootアプリケーション（Java 21）
+├── frontend/               # Vanilla JS UI（HTML/CSS/ES Modules）
+├── docs/                   # 設計・プロジェクト資料（本ディレクトリ）
+│   ├── 00_project/         # current-state、handoff、decisions、roadmap、known-issues
+│   ├── 00_プロジェクトロードマップ.md # 日本語版オリジナルロードマップ（履歴）
 │   ├── 01_requirements.md .. 14_backlog.md
-│   └── 06_screen-images/   # PNG exports from 06_screen-design.drawio
+│   └── 06_screen-images/   # 06_screen-design.drawio からのPNGエクスポート
 ├── .gitignore
-├── .env.example            # No secrets, only keys and placeholders
-├── docker-compose.yml      # Local development only (optional)
-├── Dockerfile              # Backend + frontend static bundle for Render
+├── .env.example            # 秘密情報を含まない、キーとプレースホルダのみ
+├── docker-compose.yml      # ローカル開発用（任意）
+├── Dockerfile              # Render用（backend + frontend静的配信を同梱）
 └── README.md
 ```
 
-* `src/` and `tests/` at the repository root are **not used**. The normalized structure before Phase 4 removed them in favor of `frontend/` and `backend/` to match `README.md:11-12` and the Phase 2 decision for a separate frontend bundle.
-* `frontend/` and `backend/` each contain a `.gitkeep` until Phase 6 creates their skeletons; they must not be removed to keep the directories tracked.
+* リポジトリ直下の `src/` と `tests/` は**使用しない**。Phase 4前の正規化で `README.md:11-12` およびPhase 2の「frontendを分離して配信する」決定に合わせて `frontend/` と `backend/` に置換済み。
+* `frontend/` と `backend/` は Phase 6で骨組みができるまで `.gitkeep` のみを置く。追跡を維持するため削除しないこと。
 
-## 2. Backend (`backend/`)
+## 2. バックエンド（`backend/`）
 
 ```
 backend/
-├── build.gradle            # Gradle Wrapper, Java 21, Spring Boot 3
+├── build.gradle            # Gradle Wrapper、Java 21、Spring Boot 3
 ├── settings.gradle
 ├── src/
 │   ├── main/
 │   │   ├── java/com/clokka/
 │   │   │   ├── ClokkaApplication.java
-│   │   │   ├── identity/       # Auth, session, UserDetails, Argon2id
-│   │   │   ├── attendance/     # Attendance, work_date JST logic
-│   │   │   ├── submission/     # Monthly submission + validation
-│   │   │   ├── admin/          # Admin queries, return, Excel, calendar, deadlines
-│   │   │   ├── notification/   # Push, deliveries, attempts, job API
-│   │   │   ├── audit/          # Audit log service (append-only)
-│   │   │   └── config/         # Security, web, Flyway, Jackson
+│   │   │   ├── identity/       # 認証、セッション、UserDetails、Argon2id
+│   │   │   ├── attendance/     # 勤怠、work_dateのJSTロジック
+│   │   │   ├── submission/     # 月次提出と検証
+│   │   │   ├── admin/          # 管理者検索、差戻し、Excel、休日、締切
+│   │   │   ├── notification/   # Push、deliveries、attempts、job API
+│   │   │   ├── audit/          # 監査ログ（追記専用）
+│   │   │   └── config/         # Security、Web、Flyway、Jackson設定
 │   │   └── resources/
-│   │       ├── application.yml          # No secrets; env overrides
-│   │       ├── application-local.yml    # Local profile (gitignored if needed)
-│   │       └── db/migration/            # Flyway V1__..., V2__... (SQL only)
+│   │       ├── application.yml          # 秘密情報なし、環境変数で上書き
+│   │       ├── application-local.yml    # ローカル用プロファイル（必要ならgitignore）
+│   │       └── db/migration/            # Flyway V1__..., V2__...（SQLのみ）
 │   └── test/
-│       ├── java/com/clokka/   # Mirrors main packages
+│       ├── java/com/clokka/   # mainパッケージと同一構成
 │       └── resources/
 │           └── application-test.yml
-├── .gitkeep                # Until Phase 6
-└── README.md               # Backend-only run instructions (added in Phase 6)
+├── .gitkeep                # Phase 6まで
+└── README.md               # バックエンド単体の起動手順（Phase 6で追加）
 ```
 
-* Package boundaries follow `02_architecture.md:3` modular monolith: `identity`, `attendance`, `submission`, `admin`, `export` (inside `admin`), `notification`, `audit`.
-* `db/migration` holds Flyway versioned SQL only; no Java migrations in the MVP.
-* `src/main/resources/static/` is **generated** at build time by copying `frontend/` — never hand-edited.
+* パッケージ境界は `02_architecture.md:3` のモジュラモノリスに従う：`identity`、`attendance`、`submission`、`admin`、`export`（`admin`内）、`notification`、`audit`。
+* `db/migration` はFlywayのバージョン管理されたSQLのみを置く。MVPではJavaマイグレーションは使わない。
+* `src/main/resources/static/` は**ビルド時に生成される**。`frontend/` をコピーしたものであり、手編集しないこと。
 
-## 3. Frontend (`frontend/`)
+## 3. フロントエンド（`frontend/`）
 
 ```
 frontend/
-├── index.html              # Single entry; same-origin served by Spring Boot
+├── index.html              # 単一エントリ、Spring Bootから同一オリジン配信
 ├── css/
-│   └── style.css           # Single stylesheet (no framework)
+│   └── style.css           # 単一スタイルシート（フレームワークなし）
 ├── js/
-│   ├── app.js              # Router / bootstrap
-│   ├── api.js              # Fetch wrapper + CSRF + X-Request-Id
-│   ├── auth.js             # Login / me / logout
-│   ├── attendance.js       # S-02, S-03, S-04
-│   ├── admin.js            # S-06, S-07, S-08, S-09, S-10
-│   └── notification.js     # S-05, installation_id, Push
+│   ├── app.js              # ルーター / 起動処理
+│   ├── api.js              # fetchラッパー + CSRF + X-Request-Id
+│   ├── auth.js             # ログイン / me / ログアウト
+│   ├── attendance.js       # S-02、S-03、S-04
+│   ├── admin.js            # S-06、S-07、S-08、S-09、S-10
+│   └── notification.js     # S-05、installation_id、Push
 ├── .gitkeep
-└── README.md               # Added in Phase 6
+└── README.md               # Phase 6で追加
 ```
 
-* No build tool, no `node_modules`, no bundler in the MVP (per `03_tech-stack.md`). ES Modules are used directly.
-* `frontend/` is copied into `backend/src/main/resources/static/` during `./gradlew build` (Gradle `copy` task). The source of truth remains `frontend/`.
+* MVPではビルドツール・`node_modules`・バンドラは使わない（`03_tech-stack.md`）。ES Modulesを直接利用する。
+* `frontend/` は `./gradlew build` 時に `backend/src/main/resources/static/` へコピーされる（Gradleの `copy` タスク）。正本は常に `frontend/` である。
 
-## 4. Docs and images
+## 4. ドキュメントと画像
 
 ```
 docs/
-├── 01_requirements.md      # Phase 1 approved
-├── 02_architecture.md      # Phase 2 approved
-├── 03_tech-stack.md        # Phase 2 approved
-├── 04_database.md          # Phase 3 approved (includes DDL contract)
-├── 05_api.md               # Phase 3 approved
-├── 06_screen-design.md     # Phase 3 approved
-├── 06_screen-design.drawio # Visual source (12 diagrams)
-├── 06_screen-images/       # PNG exports, one per diagram (descriptive names)
-├── 07_security.md          # Phase 3 approved
-├── 08_directory.md         # This file (Phase 4)
+├── 01_requirements.md      # Phase 1 承認済み
+├── 02_architecture.md      # Phase 2 承認済み
+├── 03_tech-stack.md        # Phase 2 承認済み
+├── 04_database.md          # Phase 3 承認済み（DDL契約を含む）
+├── 05_api.md               # Phase 3 承認済み
+├── 06_screen-design.md     # Phase 3 承認済み
+├── 06_screen-design.drawio # 視覚的正本（12ダイアグラム）
+├── 06_screen-images/       # ダイアグラムごとのPNGエクスポート（記述名付き）
+├── 07_security.md          # Phase 3 承認済み
+├── 08_directory.md         # 本ファイル（Phase 4）
 ├── 09_development-rules.md
 ├── 10_branch-strategy.md
 ├── 11_test-plan.md
-├── 12_deployment.md        # Phase 5 (still NOT_STARTED)
+├── 12_deployment.md        # Phase 5（未着手）
 ├── 13_operation.md         # Phase 5
 └── 14_backlog.md           # Phase 11
 ```
 
-* `00_プロジェクトロードマップ.md` (Japanese) is the original plan; `00_project/roadmap.md` (English) is the phase-status tracker. Both are kept; the English file is the `Audit basis` per `roadmap.md:8`.
-* `06_screen-images/` must contain one PNG per draw.io diagram with descriptive names (`S-01 共通ログイン (PC).png` etc.), not generic `S-01.png`.
+* `00_プロジェクトロードマップ.md`（日本語）は当初の計画、`00_project/roadmap.md`（英語）は進捗管理表。両方を保持し、英語版が `roadmap.md:8` の `Audit basis` である。
+* `06_screen-images/` は draw.ioの各ダイアグラムに対応するPNGを1枚ずつ、記述名（`S-01 共通ログイン (PC).png` 等）で置く。`S-01.png` のような汎用連番は使わない。
 
-## 5. CI and GitHub
+## 5. CIとGitHub
 
 ```
 .github/
 ├── workflows/
-│   ├── ci.yml              # PR and main: build, test, lint, secret scan (Phase 6)
-│   └── reminders.yml       # Scheduled POST /internal/jobs/monthly-reminders (Phase 10, optional for MVP)
+│   ├── ci.yml              # PRとmain：ビルド、テスト、Lint、秘密情報スキャン（Phase 6）
+│   └── reminders.yml       # 定時 POST /internal/jobs/monthly-reminders（Phase 10、MVPでは任意）
 └── pull_request_template.md
 ```
 
-* `.github/workflows/` currently holds only `.gitkeep`; workflows are added in Phase 6 after the repository skeleton exists.
+* `.github/workflows/` は現在 `.gitkeep` のみ。ワークフローはリポジトリ骨組みができた後のPhase 6で追加する。
 
-## 6. Root files
+## 6. ルート直下のファイル
 
-| File | Purpose | Secret handling |
+| ファイル | 用途 | 秘密情報の扱い |
 | --- | --- | --- |
-| `.gitignore` | Ignore `.env`, `build/`, `.gradle/`, `node_modules/` (if ever), IDE files | Must list `.env` before Phase 6 |
-| `.env.example` | Documents required env keys with placeholder values (e.g., `DATABASE_URL=`) | No real secrets |
-| `docker-compose.yml` | Local PostgreSQL for development (Phase 6) | Uses `.env` via `env_file`, not hardcoded |
-| `Dockerfile` | `eclipse-temurin:21-jre` based, copies built backend jar | No secrets baked in |
-| `README.md` | Points to `01_requirements.md` and `00_project/current-state.md` | No secrets |
+| `.gitignore` | `.env`、`build/`、`.gradle/`、`node_modules/`（将来）、IDEファイルを無視 | Phase 6前に `.env` を必ず記載 |
+| `.env.example` | 必要な環境変数のキーをプレースホルダ値で文書化（例 `DATABASE_URL=`） | 実際の秘密情報は書かない |
+| `docker-compose.yml` | 開発用PostgreSQL（Phase 6） | `env_file` で `.env` を参照、ハードコードしない |
+| `Dockerfile` | `eclipse-temurin:21-jre` ベース、ビルド済みbackend jarをコピー | 秘密情報を焼き込まない |
+| `README.md` | `01_requirements.md` と `00_project/current-state.md` への入口 | 秘密情報を書かない |
 
-## 7. What must not be created
+## 7. 作成してはならないもの
 
-* `src/` or `tests/` at the repository root (replaced by `frontend/`/`backend/`).
-* `backend/src/main/resources/static/` hand-edited files (generated).
-* `node_modules/`, `dist/`, `build/` committed to Git (ignored).
-* `.env` with real values, `*.pem`, `*.key`, or employee CSVs.
+* リポジトリ直下の `src/` や `tests/`（`frontend/`/`backend/` に置換済み）。
+* `backend/src/main/resources/static/` の手編集ファイル（生成物）。
+* `node_modules/`、`dist/`、`build/` のコミット（ignore対象）。
+* 実値の入った `.env`、`*.pem`、`*.key`、社員CSV。
 
-## 8. Verification before Phase 6
+## 8. Phase 6前の検証
 
-A new developer/AI must be able to run:
+新規の開発者/AIが以下で起動できること：
 
 ```bash
 git clone <url> && cd Clokka
-cp .env.example .env   # fill local values, never commit .env
-docker compose up -d   # starts local PostgreSQL
+cp .env.example .env   # ローカル値を記入、.envはコミットしない
+docker compose up -d   # ローカルPostgreSQL起動
 ./gradlew :backend:build
 ```
 
-and see `frontend/` copied into `backend/build/resources/main/static/` without manual steps. This verification is part of Phase 6 acceptance, not Phase 4.
+手動操作なしで `frontend/` が `backend/build/resources/main/static/` にコピーされること。この検証はPhase 6の受け入れ条件であり、Phase 4では行わない。
