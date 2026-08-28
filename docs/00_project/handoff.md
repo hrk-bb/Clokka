@@ -5,11 +5,11 @@
 | Purpose | Hand over the project without relying on chat history. |
 | Audience | Next AI agent, Product Owner, developers, reviewers. |
 | Update timing | Before replacing an agent, after a phase change, or after a material audit finding. |
-| Audit date | 2026-08-24. |
+| Audit date | 2026-08-28. |
 
 ## Handoff Summary
 
-Clokka is a design-first attendance-management MVP. Phase 1 (requirements) and Phase 2 (architecture/technology selection) are recorded as approved. Phase 3 (detailed DB/API/UI/security design) is drafted but not approved as a whole. No software implementation, test, CI/CD, Docker, or deployment configuration exists in the audited repository.
+Clokka is a design-first attendance-management MVP. Phase 1 (requirements) and Phase 2 (architecture/technology selection) are recorded as approved. **Phase 3 (detailed DB/API/UI/security design) is approved as a whole (Q-01 approved 2026-08-28) including the draw.io 12 PNG and the normalized repository structure (`frontend/`/`backend/`).** Phase 4 governance/test design is now in progress. No software implementation, test, CI/CD, Docker, or deployment configuration exists in the repository.
 
 ## What Has Been Completed
 
@@ -21,12 +21,12 @@ Clokka is a design-first attendance-management MVP. Phase 1 (requirements) and P
 
 ## What Is In Progress
 
-- Phase 3 review and approval.
-- Reconciliation of audited documentation/design contradictions.
+- Phase 4 design and review (`08_directory.md` through `11_test-plan.md`).
+- Repository structure alignment completed 2026-08-28 before Phase 4.
 
 ## What Has Not Started
 
-- Phase 4/5 governance, test, deployment, and operations documents.
+- Phase 5 deployment/operation design.
 - All source implementation and infrastructure: Gradle project, Spring Boot, UI, SQL migrations, Dockerfile, Render configuration, GitHub Actions workflow, test code, CI, deployment, manuals.
 
 ## Feature Traceability Snapshot
@@ -74,16 +74,16 @@ See `decisions.md` for evidence and alternatives. Do not revise these silently:
 
 | ID | Required decision |
 | --- | --- |
-| Q-01 | Approve/reject Phase 3 as a whole after reviewing DB/API/UI/security designs and audit issues. |
+| Q-01 | **RESOLVED 2026-08-28** — Phase 3 approved as a whole. |
+| Q-04 | Approve/reject Phase 4 governance/test documents (`08`–`11` and PR template). |
 | Q-05 | Before Phase 5/10: set employee-data retention/deletion policy (`R-03`) and production hosting/availability design (`R-02`, `R-05`). |
 
 ## Immediate Next Actions
 
-1. Verify Git availability and restore/confirm the intended remote, branches, commits, and Actions visibility. Do not invent Git history.
-2. Read `known-issues.md`; review the Phase 3 DB/API/security packet without implementing software.
-3. Obtain Product Owner approval for `Q-01`; the at-most-once reminder and encrypted Push-subscription design are already approved individual decisions.
-4. If Phase 3 is approved, create Phase 4 governance/test documents and submit them for review.
-5. Only then begin Phase 6 foundation implementation under the approved Phase 4/5 rules.
+1. Review Phase 4 documents (`08_directory.md` through `11_test-plan.md` plus PR template).
+2. Obtain Product Owner approval for `Q-04` (Phase 4).
+3. After Q-04, create Phase 5 deployment/operation design.
+4. Only after Phase 4/5 approval, begin Phase 6 foundation implementation under the approved rules.
 
 ## Recommended Reading Order
 

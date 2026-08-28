@@ -5,7 +5,7 @@
 | Purpose | Record phase completion against the original roadmap, not inferred implementation progress. |
 | Audience | Product Owner, AI agents, developers, reviewers. |
 | Update timing | On an explicit phase approval, phase completion, block, or scope change. |
-| Audit basis | `../00_プロジェクトロードマップ.md` and repository inspection on 2026-08-24. |
+| Audit basis | `../00_プロジェクトロードマップ.md` and repository inspection on 2026-08-28. |
 
 Status legend: `NOT_STARTED`, `IN_PROGRESS`, `REVIEW`, `APPROVED`, `BLOCKED`, `COMPLETED`.
 
@@ -13,8 +13,8 @@ Status legend: `NOT_STARTED`, `IN_PROGRESS`, `REVIEW`, `APPROVED`, `BLOCKED`, `C
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | Requirements and project governance | Make requirements implementable and establish scope, terminology, non-scope, and document migration. | `01_requirements.md`, glossary, acceptance criteria, traceability, backlog. | Priorities and acceptance criteria approved. | `COMPLETED`. | Product Owner approval recorded; primary document is synchronized as approved. |
 | 2 | Architecture and technology selection | Select implementation, deployment, notification, auth, and DB approach. | `02_architecture.md`, `03_tech-stack.md`, comparisons/ADRs. | Every technology has comparison, reason, drawbacks, and migration cost; free-tier alternative approved. | `COMPLETED`. | Explicit Product Owner approval recorded; primary documents are synchronized as approved. |
-| 3 | Detailed design | Fix data, API, UI, authorization, and security contracts. | `04_database.md`, `05_api.md`, `06_screen-design.md`, `07_security.md`, ERD, flows, threat analysis. | Traceability to design/tests; role boundaries, submission, Excel, and notification reviewed. | `IN_PROGRESS` / design review. | Not approved as a whole. Individual residual risks were accepted, but this is not Phase 3 approval. |
-| 4 | Development, quality, and Git rules design | Define directory, coding, Git, PR, and test rules. | `08_directory.md`, `09_development-rules.md`, `10_branch-strategy.md`, `11_test-plan.md`, templates. | Rules and test levels approved. | `NOT_STARTED`. Existing Japanese placeholder docs are not Phase 4 deliverables. | Not requested. |
+| 3 | Detailed design | Fix data, API, UI, authorization, and security contracts. | `04_database.md`, `05_api.md`, `06_screen-design.md`, `07_security.md`, ERD, flows, threat analysis. | Traceability to design/tests; role boundaries, submission, Excel, and notification reviewed. | `COMPLETED` / approved 2026-08-28 (Q-01). | **APPROVED** — Product Owner approved whole-phase on 2026-08-28. |
+| 4 | Development, quality, and Git rules design | Define directory, coding, Git, PR, and test rules. | `08_directory.md`, `09_development-rules.md`, `10_branch-strategy.md`, `11_test-plan.md`, templates. | Rules and test levels approved. | `IN_PROGRESS` / review (created 2026-08-28). | **REVIEW** — awaiting Q-04. |
 | 5 | Deployment and operations design | Define sustainable deployment, backups, monitoring, recovery, and secrets. | `12_deployment.md`, `13_operation.md`, backup/recovery/monitoring procedures. | Environment, HTTPS, backup, recovery, responsibility, free-tier monitoring approved. | `NOT_STARTED`. | Not requested. |
 | 6 | Development environment and repository foundation implementation | Build reproducible local environment and CI skeleton. | Spring Boot/frontend skeleton, Docker, migration base, CI, `.env.example`, README. | New developer can start it and CI passes. | `NOT_STARTED`; no code/config/CI exists. | Not requested. |
 | 7 | Backend implementation | Implement auth, attendance, submission, admin, export, notifications. | Schema/migrations, API, scheduler, audit, API tests. | API/auth contracts and tests pass. | `NOT_STARTED`. | Not requested. |
@@ -25,4 +25,4 @@ Status legend: `NOT_STARTED`, `IN_PROGRESS`, `REVIEW`, `APPROVED`, `BLOCKED`, `C
 
 ## Phase gate warning
 
-Do not start Phase 4 or implementation. Complete Phase 3 design review, resolve or explicitly accept the design/documentation issues in `known-issues.md`, and obtain explicit Product Owner approval first.
+Phase 3 is approved (Q-01 2026-08-28). Phase 4 review is now open. Do not start Phase 5 or implementation (Phase 6) before Phase 4 is approved via Q-04.

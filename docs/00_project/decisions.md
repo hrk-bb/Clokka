@@ -5,7 +5,7 @@
 | Purpose | Preserve evidence-backed architecture and product decisions for future agents. |
 | Audience | Product Owner, AI agents, developers, reviewers. |
 | Update timing | When an approved decision is created, changed, superseded, or contradicted. |
-| Audit basis | Existing primary documents inspected and synchronized on 2026-08-24. |
+| Audit basis | Existing primary documents inspected and synchronized on 2026-08-28. |
 
 ## ADR-001 — Work-date basis for overnight attendance
 
@@ -91,17 +91,17 @@
 
 **Decision:** Do not create all employees’ monthly submission records at month start. Create `DRAFT` with the first attendance save; a successful submission with no existing record creates `SUBMITTED`; GET/list views treat absence as display-only `DRAFT`.
 
-**Status:** PROPOSED / Phase 3 review, not approved as a whole.
+**Status:** APPROVED — whole-phase Q-01 approved 2026-08-28.
 
-**Date:** Exact date unavailable from repository evidence.
+**Date:** Approved as part of Phase 3 whole-phase approval 2026-08-28 (originally recorded as Phase 3 review).
 
 **Reason:** Avoid empty monthly records and dependence on a monthly batch while ensuring unoperated employees appear in admin lists.
 
-**Alternatives:** Create a row for every active employee monthly; create `DRAFT` on failed submission. Not selected in current draft.
+**Alternatives:** Create a row for every active employee monthly; create `DRAFT` on failed submission. Not selected.
 
 **Consequences:** Admin queries need left joins and submission API needs careful transactional behavior.
 
-**Evidence:** `../04_database.md`, `../05_api.md`.
+**Evidence:** `../04_database.md`, `../05_api.md`, Q-01 approval 2026-08-28.
 
 ## ADR-007 — Employee data on MVP external services
 
@@ -123,9 +123,9 @@
 
 **Decision:** Persist a monthly deadline for every target month. Use a durable, committed `notification_deliveries` reservation with `UNIQUE(employee_id, notification_date)` to provide at-most-once Push delivery attempts per employee and JST date. Persist per-subscription outcomes separately. Store the complete Web Push subscription only as application-layer AES-256-GCM ciphertext; retain revoked installation rows while clearing their encrypted subscription data. Make audit logs append-only through a non-owner runtime DB role plus a rejecting database trigger.
 
-**Status:** APPROVED as a Phase 3 design decision; whole-phase approval remains `Q-01`.
+**Status:** APPROVED — whole-phase Q-01 approved 2026-08-28 (Phase 3 complete).
 
-**Date:** 2026-08-26.
+**Date:** 2026-08-26 design decision; whole-phase approval 2026-08-28.
 
 **Reason:** Resolve the review findings for deadline persistence, reminder deduplication, Push subscription inconsistency/protection, database-enforced integrity, and audit immutability without adding paid infrastructure.
 
