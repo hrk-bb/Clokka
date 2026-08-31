@@ -56,7 +56,8 @@
   * `V1__extensions_and_roles.sql` — `pgcrypto`（`gen_random_uuid()`）、ロール `clokka_owner` / `clokka_app`。
   * `V2__core_tables.sql` — `departments`、`employees`、`attendance_records`、`monthly_submissions`、`company_calendar`、`submission_deadlines`、`push_subscriptions`、`notification_deliveries`、`notification_delivery_attempts`、`audit_logs` および全ての `CHECK`、`UNIQUE`、`FK ON DELETE RESTRICT`。
   * `V3__indexes_and_triggers.sql` — `04:7` のインデックスと `reject_audit_log_mutation` トリガー。
-* **コミットされる `application.yml` に秘密情報を置かない。** `${DATABASE_URL}`、`${PUSH_SUBSCRIPTION_ENCRYPTION_KEY}`、`${VAPID_PRIVATE_KEY}` 等はRenderの環境変数またはローカルの `.env` から注入する。`.env` はgitignoreする。
+  * `V4__employee_invitations.sql` — `employee_invitations`（招待トークンのハッシュ、期限、単回利用）とそのインデックス（追補 2026-08-28）。
+* **コミットされる `application.yml` に秘密情報を置かない。** `${DATABASE_URL}`、`${PUSH_SUBSCRIPTION_ENCRYPTION_KEY}`、`${VAPID_PRIVATE_KEY}`、`${BOOTSTRAP_ADMIN_PASSWORD}` 等はRenderの環境変数またはローカルの `.env` から注入する。`.env` はgitignoreする。
 
 ## 6. セキュリティ規約（`07_security.md` より）
 
@@ -65,6 +66,8 @@
 * レート制限: ログインと `POST /internal/jobs/monthly-reminders` はレート制限する（MVPではDBではなくインメモリ）。
 * `audit_logs` のトリガーと `GRANT`（`04:7` / `07:4`）は、監査に関わる機能をマージする前に必須とする。
 * Push購読の `subscription_ciphertext`/`iv`/`key_version` の扱い（`07:5`）は、Push機能をマージする前に必須とする。
+* Bootstrapの `BOOTSTRAP_ADMIN_*` は `ApplicationRunner` で1つのトランザクションで `SELECT pg_advisory_xact_lock(hashtext('bootstrap_admin'))` 後に件数検証し、有効ADMINが0件の時のみ冪等に1件を作成し、既に存在する場合は何もしない。`departments` は `V2` で既定の `未所属` をSeedするため空DBでも作成可能である。Git・DB・監査ログ・通常ログに平文を出さない。初期管理者のパスワード変更は推奨（必須ではなく、専用APIは未定義のため任意）とし、実施した場合は `PASSWORD_CHANGED` として監査する。再招待時は既存の有効な未使用招待を無効化して新トークンを発行する。
+* 最後の有効ADMINの降格/無効化は `409 LAST_ADMIN_RESTRICTION` で拒否する。1つのトランザクションで `SELECT pg_advisory_xact_lock(hashtext('last_admin_protection'))` 後に `SELECT COUNT(*) FROM employees WHERE role='ADMIN' AND is_active=true` で件数を検証し、0件になる操作はロールバックする。DBの `CHECK` では人数を強制しない。
 
 ## 7. Gitの運用
 

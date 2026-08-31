@@ -62,7 +62,7 @@ backend/
 ```
 
 * パッケージ境界は `02_architecture.md:3` のモジュラモノリスに従う：`identity`、`attendance`、`submission`、`admin`、`export`（`admin`内）、`notification`、`audit`。
-* `db/migration` はFlywayのバージョン管理されたSQLのみを置く。MVPではJavaマイグレーションは使わない。
+* `db/migration` はFlywayのバージョン管理されたSQLのみを置く。MVPではJavaマイグレーションは使わない。2026-08-28追補の `V4__employee_invitations.sql` は `employee_invitations` とそのインデックス/制約を担う。
 * `src/main/resources/static/` は**ビルド時に生成される**。`frontend/` をコピーしたものであり、手編集しないこと。
 
 ## 3. フロントエンド（`frontend/`）

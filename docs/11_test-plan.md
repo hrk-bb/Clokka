@@ -35,20 +35,29 @@
 | FR-08 管理一覧 | ソート比較 | `GET /admin/submissions` のフィルタ、ソート、ページング | `X-Request-Id` の存在 | S-06の検索/ソート |
 | FR-12 Push状態 | 集約 `GRANTED>DEFAULT>DENIED>UNSUPPORTED>UNKNOWN` | `push_subscriptions` の暗号化/復号、`PUT /push-subscriptions/status` | `GET /admin/push-status?status=DENIED` | S-07の絞り込み表示 |
 | FR-09 Excel | `workMinutes = elapsed - break` | `GET /admin/exports/attendance.xlsx` がXLSXをストリームし監査が残る | `Content-Disposition` + 監査 | S-06のExcelダウンロード |
-| FR-10 管理設定 | `is_active` 切替 | `POST/PATCH /admin/employees`、`.../calendar`、`.../deadlines/{month}` | `PUT dueAt +09:00` の扱い | S-08、S-09、S-10 |
-| FR-11 監査 | `actor_type` のCHECK | `audit_logs` のトリガーがUPDATE/DELETEを拒否、`GRANT` | 変更系エンドポイントは全て監査を挿入 | 監査ログ照会（内部） |
+| FR-10 管理設定 | `is_active` 切替、最後のADMIN保護 | `POST/PATCH /admin/employees`、`.../calendar`、`.../deadlines/{month}` | `PUT dueAt +09:00` の扱い、`409 LAST_ADMIN_RESTRICTION` | S-08、S-09、S-10 |
+| FR-10a 招待/有効化 | トークン生成、有効期限 | `POST /admin/employees`（招待）、`POST /auth/activate` | 招待の `404`/`410`、`is_active` 遷移 | S-08招待、S-11有効化 |
+| FR-11 監査 | `actor_type` のCHECK、Bootstrapの `SYSTEM` 起因 | `audit_logs` のトリガーがUPDATE/DELETEを拒否、`GRANT` | 変更系エンドポイントは全て監査を挿入 | 監査ログ照会（内部） |
 | NFR-02 性能 | — | — | 50名×31日のExcelが30秒以内（タイマー付きAPIテスト） | Playwrightの360px + Chrome/Edge/Safari |
 
 ## 3. データベース契約テスト（機能より先に必ず成功させること）
 
-* 新品の `postgres:16`（Testcontainers）にFlyway `V1`〜`V3` を適用する。
-* `04_database.md:4` の `CHECK` 制約を検証する：JST境界（`23:00 JST = 14:00 UTC`）での `ck_attendance_work_date_jst`、`ck_submission_status_fields`、`ck_notification_*`、`ck_push_payload_state`、および `audit_logs` トリガー。
+* 新品の `postgres:16`（Testcontainers）にFlyway `V1`〜`V4` を適用する（`V4` は `employee_invitations`）。
+* `04_database.md:4` の `CHECK` 制約を検証する：JST境界（`23:00 JST = 14:00 UTC`）での `ck_attendance_work_date_jst`、`ck_submission_status_fields`、`ck_notification_*`、`ck_push_payload_state`、`ck_invitation_expiry`/`ck_invitation_used`、および `audit_logs` トリガー。
 * ロール：`clokka_app` は `audit_logs` に対して `SELECT, INSERT` はできるが `UPDATE`/`DELETE` はトリガーで拒否される。`PUBLIC` に権限は与えない。
 
 ## 4. Push暗号化テスト
 
 * 購読JSONは `AES-GCM`（12バイトIV）で暗号化し、同じ `key_version` で復号できること。異なる鍵での復号は `AEADBadTagException` で失敗すること。
 * `DELETE /push-subscriptions/{id}` は `ciphertext/iv/version` をクリアし `revoked_at` を設定すること。`GET /admin/push-status` は平文のendpoint/鍵を決して返さないこと。
+
+### 招待・Bootstrap・最後のADMINテスト
+
+* 空DBで `BOOTSTRAP_ADMIN_*` を設定して起動すると `ADMIN` が1件作成され、再起動しても増えないこと（`departments` は `V2` で既定の `未所属` がSeedされているため空DBでも実行可能）。`ADMIN` が既に存在する状態ではSeedが何もしないこと。
+* `is_active=false` の社員は `POST /auth/login` で `401` となること。`POST /auth/activate` で正しいトークンと新パスワードを送ると `is_active=true` となり、トークンは1回限りで2回目は `410`/`404` となること。
+* 有効期限切れトークンは `410`、不正トークンは `404` となること。管理者は平文トークンをDBに残さず、再発行は新たな招待で発行すること。
+* 再招待時は既存の有効な未使用招待が無効化され、新トークンのみが有効であること。
+* 有効な `ADMIN` が1人の状態で `PATCH /admin/employees/{id} {role:EMPLOYEE}` または `{is_active:false}` を送ると、トランザクション内で `SELECT pg_advisory_xact_lock(hashtext('last_admin_protection'))` 後に件数検証が行われ `409 LAST_ADMIN_RESTRICTION` で拒否され、DBは変更されないこと。2人いる状態では1人の降格が成功すること。
 
 ## 5. APIテスト規約
 
@@ -59,7 +68,7 @@
 
 ## 6. フロントエンド / E2E（Phase 9）
 
-* Playwrightで S-01 → S-02/S-06、S-03保存、S-04提出、S-06差戻し、および `06_screen-design.md:6` と `NFR-01` の360pxレスポンシブをカバーする。
+* Playwrightで S-01 → S-02/S-06、S-03保存、S-04提出、S-06差戻し、S-08招待→S-11有効化、および `06_screen-design.md:6` と `NFR-01` の360pxレスポンシブをカバーする。
 * MVPでは `frontend` の単体テストは行わない。50名規模ではE2EとAPIカバレッジで十分である。
 
 ## 7. CI品質ゲート（Phase 6で追加）
