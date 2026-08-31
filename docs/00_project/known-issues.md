@@ -1,37 +1,39 @@
-# Clokka Known Issues and Audit Findings
+# Clokka 既知の問題・監査結果
 
-| Item | Value |
+| 項目 | 内容 |
 | --- | --- |
-| Purpose | Make risks, gaps, and contradictions visible without silently changing existing specifications. |
-| Audience | Product Owner, AI agents, developers, reviewers, operators. |
-| Update timing | When a problem is found, resolved, accepted, or superseded. |
-| Audit basis | Repository inspection and documentation synchronization on 2026-08-28. |
+| 目的 | リスク、欠落、矛盾を、既存仕様を無断で変更することなく可視化する。 |
+| 対象読者 | プロダクトオーナー、AIエージェント、開発者、レビュー担当者、運用担当者 |
+| 更新タイミング | 問題が発見、解消、受容、または上書きされた時 |
+| 監査基準 | リポジトリ調査と文書同期（2026-08-28実施、2026-08-29に言語統一・整合性是正を追加） |
 
-| ID | Category | Content | Impact | Current state | Workaround | Recommended response | Priority | Related files |
+| ID | 分類 | 内容 | 影響 | 現在の状態 | 回避策 | 推奨対応 | 優先度 | 関連ファイル |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| KI-001 | IMPLEMENTATION | No backend/frontend code exists. `backend/` and `frontend/` contain only `.gitkeep`. | All required features are unimplemented. | Open; expected before Phase 6–8. | None. Do not claim functionality. | Complete Phase 4–5 approvals before implementing. | Critical | `backend/.gitkeep`, `frontend/.gitkeep`, roadmap. |
-| KI-002 | TEST / CI/CD | No test source, build configuration, Dockerfile, Compose file, environment template, or GitHub Actions workflow exists. `.github/workflows/` has only `.gitkeep`. | No automated quality, reproducibility, deployment, or security verification. | Open; expected before Phase 6. | None. | Design Phase 4/5, then implement CI and test foundation. | Critical | `.github/workflows/.gitkeep`, `README.md`. |
-| KI-010 | SECURITY | No `.gitignore` or secret-scanning/CI configuration exists. No secrets were found in workspace files, but GitHub/Render/Neon secret stores are unverified. | Future accidental secret commit risk. | Open; no exposed secret evidenced. | Do not create `.env` under version control. | Phase 4/6: add approved `.gitignore`, `.env.example` without values, secret scanning, and CI checks. | High | Repository root, `.github/workflows/`. |
-| KI-011 | DEPLOYMENT | Render/Neon/GitHub deployment is design only. No Dockerfile, Render config, GitHub connection, Action schedule, secrets, health check, or deployed URL exists. | MVP cannot run; deployment status is unknown. | Open; expected before Phase 6/10. | None. | Do not state deployment exists; design Phase 5 then create foundation after approval. | High | `docs/02_architecture.md`, `docs/03_tech-stack.md`. |
-| KI-012 | OPERATIONS / SECURITY | Data retention and deletion after retirement is unresolved (`R-03`). Current intent is disable account and retain history. | Legal/policy compliance unknown before real operation. | Accepted residual risk; revisit before Phase 10. | Do not delete history by default. | Product Owner/company policy must specify retention/deletion and backup retention before production. | High | `docs/04_database.md`. |
-| KI-013 | DEPLOYMENT / PERFORMANCE | Render Free 15-minute idle shutdown and GitHub Actions best-effort reminder triggering are accepted only for MVP (`D-05`, `R-02`, `R-05`). | Slow cold starts and unreliable scheduled reminder availability; not suitable for formal operation. | Accepted for MVP, must be redesigned before production. | Admin status list is designed as fallback. | Reassess hosting, availability, scheduler, monitoring, backup and alerting before Phase 10. | High | `docs/02_architecture.md`, `docs/03_tech-stack.md`, `docs/07_security.md`. |
+| KI-001 | 実装 | バックエンド/フロントエンドのコードが存在しない。`backend/`と`frontend/`は`.gitkeep`のみ。 | 必須機能がすべて未実装。 | オープン。Phase 6〜8前は想定内。 | なし。機能が動作すると主張しないこと。 | Phase 4〜5の承認を得てから実装する。 | Critical | `backend/.gitkeep`、`frontend/.gitkeep`、roadmap。 |
+| KI-002 | テスト / CI/CD | テストソース、ビルド設定、Dockerfile、Composeファイル、環境変数テンプレート、GitHub Actionsワークフローが存在しない。`.github/workflows/`は`.gitkeep`のみ。 | 自動化された品質・再現性・デプロイ・セキュリティ検証が一切ない。 | オープン。Phase 6前は想定内。 | なし。 | Phase 4/5を設計後、CIとテスト基盤を実装する。 | Critical | `.github/workflows/.gitkeep`、`README.md`。 |
+| KI-010 | セキュリティ | `.gitignore`やシークレットスキャン/CI設定が存在しない。ワークスペースファイルに秘密情報は見つからなかったが、GitHub/Render/Neonのシークレットストアは未検証。 | 将来の秘密情報の誤コミットリスク。 | オープン。露出した秘密情報の証跡はなし。 | `.env`をバージョン管理下に置かないこと。 | Phase 4/6で承認済みの`.gitignore`、値なしの`.env.example`、シークレットスキャン、CIチェックを追加する。 | High | リポジトリルート、`.github/workflows/`。 |
+| KI-011 | デプロイ | Render/Neon/GitHubデプロイは設計のみ。Dockerfile、Render設定、GitHub連携、Actionsスケジュール、シークレット、ヘルスチェック、デプロイURLのいずれも存在しない。 | MVPは稼働できず、デプロイ状況は不明。 | オープン。Phase 6/10前は想定内。 | なし。 | デプロイが存在すると主張しないこと。Phase 5を設計後、承認を経て基盤を作成する。 | High | `docs/02_architecture.md`、`docs/03_tech-stack.md`。 |
+| KI-012 | 運用 / セキュリティ | 退職後のデータ保持・削除方針が未解決（`R-03`）。現時点の意図はアカウント無効化と履歴保持。 | 正式運用前の法令/ポリシー適合性が不明。 | 残存リスクとして受容。Phase 10前に再検討。 | 既定で履歴を削除しないこと。 | プロダクトオーナー/会社方針として、本番前に保持/削除・バックアップ保持期間を定めること。 | High | `docs/04_database.md`。 |
+| KI-013 | デプロイ / パフォーマンス | Render Freeの15分アイドル停止とGitHub Actionsのベストエフォート型リマインド起動は、MVPに限り受容（`D-05`、`R-02`、`R-05`）。 | コールドスタートが遅く、定時リマインドの可用性が不安定。正式運用には不向き。 | MVPとして受容。本番前に再設計が必要。 | 管理者向け状態一覧をフォールバックとして設計済み。 | Phase 10前にホスティング、可用性、スケジューラ、監視、バックアップ、アラートを再評価する。 | High | `docs/02_architecture.md`、`docs/03_tech-stack.md`、`docs/07_security.md`。 |
+| KI-015 | ドキュメント | `06_screen-design.md`ではS-11（招待有効化）の表・フロー図・ワイヤーフレームが完全に記述されているが、視覚資産（`06_screen-design.drawio`と`06_screen-images/`）はS-01〜S-10（PNG12枚）のみでS-11を含まない。招待機能（D-07/D-08/D-09、2026-08-28追加）はdraw.io/PNGエクスポート後にテキストで追補されたため、図が再生成されていない。 | 図/PNGのみに依存する読者はS-11画面を見落とす。テキスト仕様は完結しているためバックエンド/API作業のブロッカーではないが、視覚設計の成果物としては未完了。 | オープン。 | KI-015が解消するまで、`06_screen-design.md`本文中のテキスト仕様（表・フロー・ワイヤーフレーム）をS-11の正本として扱う。 | `06_screen-design.drawio`にS-11を追加し、対応する`S-11 招待有効化.png`をエクスポートしてから、Phase 3の視覚資産を完全完了とすること。 | Medium | `docs/06_screen-design.md`、`docs/06_screen-design.drawio`、`docs/06_screen-images/`。 |
 
-## Resolved audit findings
+## 解決済みの監査結果
 
-| ID | Resolution | Resolved on |
+| ID | 解決内容 | 解決日 |
 | --- | --- | --- |
-| KI-003 | Git tooling is now available. `main` history, remote `origin`, and working tree are verifiable. The 2026-08-24 environment issue is closed. | 2026-08-28 |
-| KI-004 | README now points to `01_requirements.md`; Japanese legacy documents carry an explicit history/primary-document notice. | 2026-08-24 |
-| KI-005 | The functional-requirements table was repaired; FR-01 through FR-12 are in one table. | 2026-08-24 |
-| KI-006 | `04_database.md` now uses the same Push aggregation algorithm as requirements/API: `GRANTED`, then `DEFAULT` if any unconfigured installation, then `DENIED` only if all supported installations deny, then `UNSUPPORTED`, then `UNKNOWN`. | 2026-08-24 |
-| KI-007 | Duplicate primary Push-state definition and duplicate S-07 help text were removed. | 2026-08-24 |
-| KI-008 | Architecture risk wording now follows D-06 and the Render-based MVP; stale dummy-only and VM-specific wording was replaced. | 2026-08-24 |
-| KI-014 | Phase 1/2 primary-document headers and current roadmap wording now reflect approved/completed status. | 2026-08-24 |
-| KI-009 | Resolved in the Phase 3 review design on 2026-08-26. `notification_deliveries` reserves a logical employee notification before sending, with `UNIQUE(employee_id, notification_date)` using the job's JST date; `notification_delivery_attempts` records subscription-level outcomes. The chosen at-most-once behavior may miss a Push after a crash, but does not issue a second Push request for the same employee/date. | 2026-08-26 |
+| KI-003 | Gitツールが利用可能になった。`main`の履歴、リモート`origin`、ワーキングツリーは検証可能。2026-08-24の環境問題はクローズ済み。 | 2026-08-28 |
+| KI-004 | READMEは`01_requirements.md`を指すようになり、移行前の日本語文書は削除済みである旨を明記した。 | 2026-08-29 |
+| KI-005 | 機能要件テーブルを修復し、FR-01〜FR-12を1つの表にまとめた。 | 2026-08-24 |
+| KI-006 | `04_database.md`は要件/APIと同じPush集約アルゴリズムを使用するようになった：`GRANTED`、次に未設定インストールがあれば`DEFAULT`、全対応インストールが拒否した場合のみ`DENIED`、次に`UNSUPPORTED`、最後に`UNKNOWN`。 | 2026-08-24 |
+| KI-007 | Push状態の一次定義の重複とS-07のヘルプ文言の重複を削除した。 | 2026-08-24 |
+| KI-008 | アーキテクチャのリスク記述をD-06とRenderベースのMVPに合わせて更新し、古いダミーデータ限定・VM固有の記述を置き換えた。 | 2026-08-24 |
+| KI-014 | Phase 1/2の一次文書ヘッダーと現行ロードマップの文言を、承認済み/完了済みの状態に合わせて更新した。 | 2026-08-24 |
+| KI-009 | 2026-08-26のPhase 3レビュー設計で解決済み。`notification_deliveries`は送信前に社員単位の通知を予約し、ジョブのJST日付で`UNIQUE(employee_id, notification_date)`を使用する。`notification_delivery_attempts`は購読単位の結果を記録する。選択した「最大1回」の挙動はクラッシュ後にPushを取りこぼす可能性があるが、同一社員/日付への二重送信は発生しない。 | 2026-08-26 |
+| KI-016 | 2026-08-29に是正。削除済みファイル（`00_プロジェクトロードマップ.md`）への参照、D-07/D-08/D-09の承認状態の矛盾（`01_requirements.md`が「Q-04承認待ち」、`decisions.md` ADR-009が「承認済み」）、`docs/00_project/*`と`AGENTS.md`の言語不統一、`AGENTS.md`と`09_development-rules.md`の原則の重複記述を解消した。 | 2026-08-29 |
 
-## Security audit result
+## セキュリティ監査結果
 
-- No `.env`, certificate/key/credential-named workspace file, or obvious literal secret was found by filename and text-pattern scan.
-- No code/configuration exists, so there was no application-level secret/configuration audit to perform.
-- GitHub Secrets, Render environment variables, Neon credentials, remote history, and private repository security settings are **not accessible/verified**.
-- No real employee data was found in the workspace files inspected.
+- ファイル名・テキストパターンによる走査では、`.env`、証明書/鍵/認証情報名のワークスペースファイル、明白な秘密情報の値は見つからなかった。
+- コード/設定が存在しないため、アプリケーション層の秘密情報/設定監査は実施していない。
+- GitHubシークレット、Render環境変数、Neonの認証情報、リモート履歴、プライベートリポジトリのセキュリティ設定は**アクセス/検証不可**。
+- 調査したワークスペースファイルに実在の社員データは見つからなかった。

@@ -18,8 +18,7 @@ Clokka/
 ├── backend/                # Spring Bootアプリケーション（Java 21）
 ├── frontend/               # Vanilla JS UI（HTML/CSS/ES Modules）
 ├── docs/                   # 設計・プロジェクト資料（本ディレクトリ）
-│   ├── 00_project/         # current-state、handoff、decisions、roadmap、known-issues
-│   ├── 00_プロジェクトロードマップ.md # 日本語版オリジナルロードマップ（履歴）
+│   ├── 00_project/         # current-state、handoff、decisions、roadmap、known-issues（正本はroadmap.md）
 │   ├── 01_requirements.md .. 14_backlog.md
 │   └── 06_screen-images/   # 06_screen-design.drawio からのPNGエクスポート
 ├── .gitignore
@@ -108,8 +107,8 @@ docs/
 └── 14_backlog.md           # Phase 11
 ```
 
-* `00_プロジェクトロードマップ.md`（日本語）は当初の計画、`00_project/roadmap.md`（英語）は進捗管理表。両方を保持し、英語版が `roadmap.md:8` の `Audit basis` である。
-* `06_screen-images/` は draw.ioの各ダイアグラムに対応するPNGを1枚ずつ、記述名（`S-01 共通ログイン (PC).png` 等）で置く。`S-01.png` のような汎用連番は使わない。
+* プロジェクト進捗の正本は `00_project/roadmap.md` の1つのみとする。移行前に存在した日本語版ロードマップ（`00_プロジェクトロードマップ.md`）は、内容を`roadmap.md`へ統合した上で2026-08-29にプロダクトオーナーの判断で削除済み。以後、この旧ファイルへの参照は作らない（`01_requirements.md` 8章「文書移行方針」参照）。
+* `06_screen-images/` は draw.ioの各ダイアグラムに対応するPNGを1枚ずつ、記述名（`S-01 共通ログイン (PC).png` 等）で置く。`S-01.png` のような汎用連番は使わない。**現時点でS-11（招待有効化）のPNGは未作成（`known-issues.md` KI-015）。画面仕様自体は`06_screen-design.md`に確定済みのため実装のブロッカーではないが、視覚資産としては未完了。**
 
 ## 5. CIとGitHub
 

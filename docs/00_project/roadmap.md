@@ -1,28 +1,28 @@
-# Clokka Roadmap Status
+# Clokka ロードマップ進捗状況
 
-| Item | Value |
+| 項目 | 内容 |
 | --- | --- |
-| Purpose | Record phase completion against the original roadmap, not inferred implementation progress. |
-| Audience | Product Owner, AI agents, developers, reviewers. |
-| Update timing | On an explicit phase approval, phase completion, block, or scope change. |
-| Audit basis | `../00_プロジェクトロードマップ.md` and repository inspection on 2026-08-28. |
+| 目的 | 当初ロードマップに対する各Phaseの完了状況を、推測ではなく事実に基づいて記録する。 |
+| 対象読者 | プロダクトオーナー、AIエージェント、開発者、レビュー担当者 |
+| 更新タイミング | Phaseの明示的な承認・完了・ブロック・スコープ変更が発生した時 |
+| 監査基準 | リポジトリ調査（2026-08-28）。旧`00_プロジェクトロードマップ.md`は本ファイルへ統合後、2026-08-29にプロダクトオーナーの判断で削除済み。 |
 
-Status legend: `NOT_STARTED`, `IN_PROGRESS`, `REVIEW`, `APPROVED`, `BLOCKED`, `COMPLETED`.
+状態の凡例：`NOT_STARTED`、`IN_PROGRESS`、`REVIEW`、`APPROVED`、`BLOCKED`、`COMPLETED`。
 
-| Phase | Name | Purpose | Deliverables | Original completion condition | Current state | Approval state |
+| Phase | 名称 | 目的 | 成果物 | 当初の完了条件 | 現在の状態 | 承認状態 |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | Requirements and project governance | Make requirements implementable and establish scope, terminology, non-scope, and document migration. | `01_requirements.md`, glossary, acceptance criteria, traceability, backlog. | Priorities and acceptance criteria approved. | `COMPLETED`. | Product Owner approval recorded; primary document is synchronized as approved. |
-| 2 | Architecture and technology selection | Select implementation, deployment, notification, auth, and DB approach. | `02_architecture.md`, `03_tech-stack.md`, comparisons/ADRs. | Every technology has comparison, reason, drawbacks, and migration cost; free-tier alternative approved. | `COMPLETED`. | Explicit Product Owner approval recorded; primary documents are synchronized as approved. |
-| 3 | Detailed design | Fix data, API, UI, authorization, and security contracts. | `04_database.md`, `05_api.md`, `06_screen-design.md`, `07_security.md`, ERD, flows, threat analysis. | Traceability to design/tests; role boundaries, submission, Excel, and notification reviewed. | `COMPLETED` / approved 2026-08-28 (Q-01). | **APPROVED** — Product Owner approved whole-phase on 2026-08-28. |
-| 4 | Development, quality, and Git rules design | Define directory, coding, Git, PR, and test rules. | `08_directory.md`, `09_development-rules.md`, `10_branch-strategy.md`, `11_test-plan.md`, templates. | Rules and test levels approved. | `IN_PROGRESS` / review (created 2026-08-28). | **REVIEW** — awaiting Q-04. |
-| 5 | Deployment and operations design | Define sustainable deployment, backups, monitoring, recovery, and secrets. | `12_deployment.md`, `13_operation.md`, backup/recovery/monitoring procedures. | Environment, HTTPS, backup, recovery, responsibility, free-tier monitoring approved. | `NOT_STARTED`. | Not requested. |
-| 6 | Development environment and repository foundation implementation | Build reproducible local environment and CI skeleton. | Spring Boot/frontend skeleton, Docker, migration base, CI, `.env.example`, README. | New developer can start it and CI passes. | `NOT_STARTED`; no code/config/CI exists. | Not requested. |
-| 7 | Backend implementation | Implement auth, attendance, submission, admin, export, notifications. | Schema/migrations, API, scheduler, audit, API tests. | API/auth contracts and tests pass. | `NOT_STARTED`. | Not requested. |
-| 8 | Frontend implementation | Implement employee/admin UI. | Login, attendance, submission, notification, admin, export UI. | Designed screens operate on target browsers. | `NOT_STARTED`. | Not requested. |
-| 9 | Integration, acceptance, and security verification | Verify business flows and failure behavior. | E2E/acceptance/security/load results, Excel sample. | 50-employee dummy month succeeds; no critical/high defects. | `NOT_STARTED`. | Not requested. |
-| 10 | Production deployment and setup | Establish approved production environment and initial data. | Production, deployment/setup/recovery records, release notes. | HTTPS/monitoring/backup/restore verified and release approved. | `NOT_STARTED`. | Not requested. |
-| 11 | Operations, training, and improvement | Make system supportable and improve after launch. | User/admin manuals, checklists, backlog. | Admin demonstration and first-month retrospective completed. | `NOT_STARTED`. | Not requested. |
+| 1 | 要件定義とプロジェクトガバナンス | 要件を実装可能な形に確定し、スコープ・用語・非対象・文書移行を定める。 | `01_requirements.md`、用語集、受入条件、トレーサビリティ、バックログ。 | 優先順位と受入条件が承認済みであること。 | `COMPLETED` | プロダクトオーナー承認記録済み。正本は承認済みとして同期済み。 |
+| 2 | アーキテクチャと技術選定 | 実装・デプロイ・通知・認証・DBの方針を選定する。 | `02_architecture.md`、`03_tech-stack.md`、比較表/ADR。 | 全技術に比較・理由・欠点・移行コストがあり、無料枠代替案が承認済みであること。 | `COMPLETED` | プロダクトオーナーの明示的承認記録済み。正本は承認済みとして同期済み。 |
+| 3 | 詳細設計 | データ・API・UI・認可・セキュリティの契約を確定する。 | `04_database.md`、`05_api.md`、`06_screen-design.md`、`07_security.md`、ER図、フロー、脅威分析。 | 設計・テストへのトレーサビリティ、権限境界、提出、Excel、通知のレビュー完了。 | `COMPLETED` / 2026-08-28承認（Q-01） | **承認済み** — プロダクトオーナーが2026-08-28にフェーズ全体を承認。 |
+| 4 | 開発・品質・Gitルール設計 | ディレクトリ、コーディング、Git、PR、テストのルールを定める。 | `08_directory.md`、`09_development-rules.md`、`10_branch-strategy.md`、`11_test-plan.md`、各種テンプレート。 | ルールとテストレベルが承認済みであること。 | `IN_PROGRESS` / レビュー中（2026-08-28作成） | **レビュー中** — Q-04承認待ち。 |
+| 5 | デプロイ・運用設計 | 持続可能なデプロイ、バックアップ、監視、復旧、秘密情報管理を定める。 | `12_deployment.md`、`13_operation.md`、バックアップ/復旧/監視手順。 | 環境、HTTPS、バックアップ、復旧、責任分担、無料枠監視が承認済みであること。 | `NOT_STARTED` | 未着手。 |
+| 6 | 開発環境・リポジトリ基盤の実装 | 再現可能なローカル環境とCIの骨組みを構築する。 | Spring Boot/フロントエンドの雛形、Docker、マイグレーション基盤、CI、`.env.example`、README。 | 新規開発者が着手可能でCIが通ること。 | `NOT_STARTED`：コード・設定・CIは存在しない。 | 未着手。 |
+| 7 | バックエンド実装 | 認証・勤怠・提出・管理・出力・通知を実装する。 | スキーマ/マイグレーション、API、スケジューラ、監査、APIテスト。 | API/認証契約とテストが成功すること。 | `NOT_STARTED` | 未着手。 |
+| 8 | フロントエンド実装 | 社員/管理者向けUIを実装する。 | ログイン、勤怠、提出、通知、管理、出力のUI。 | 設計済み画面が対象ブラウザで動作すること。 | `NOT_STARTED` | 未着手。 |
+| 9 | 結合・受入・セキュリティ検証 | 業務フローと異常系の挙動を検証する。 | E2E/受入/セキュリティ/負荷試験結果、Excelサンプル。 | 50名分ダミー月次が成功し、重大/高不具合がないこと。 | `NOT_STARTED` | 未着手。 |
+| 10 | 本番デプロイとセットアップ | 承認済み本番環境と初期データを構築する。 | 本番環境、デプロイ/セットアップ/復旧記録、リリースノート。 | HTTPS/監視/バックアップ/復旧が検証されリリース承認済みであること。 | `NOT_STARTED` | 未着手。 |
+| 11 | 運用・教育・改善 | システムを運用可能にし、稼働後に改善する。 | 利用者/管理者マニュアル、チェックリスト、バックログ。 | 管理者向けデモと初月振り返りが完了していること。 | `NOT_STARTED` | 未着手。 |
 
-## Phase gate warning
+## Phaseゲートに関する注意
 
-Phase 3 is approved (Q-01 2026-08-28). Phase 4 review is now open. Do not start Phase 5 or implementation (Phase 6) before Phase 4 is approved via Q-04.
+Phase 3は承認済み（Q-01、2026-08-28）。Phase 4のレビューは進行中。Phase 4がQ-04で承認されるまで、Phase 5および実装（Phase 6）を開始しないこと。

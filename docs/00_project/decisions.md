@@ -1,152 +1,152 @@
-# Clokka Decision Record
+# Clokka 決定記録
 
-| Item | Value |
+| 項目 | 内容 |
 | --- | --- |
-| Purpose | Preserve evidence-backed architecture and product decisions for future agents. |
-| Audience | Product Owner, AI agents, developers, reviewers. |
-| Update timing | When an approved decision is created, changed, superseded, or contradicted. |
-| Audit basis | Existing primary documents inspected and synchronized on 2026-08-28. |
+| 目的 | 将来のエージェントのために、根拠を伴うアーキテクチャ・プロダクト決定を保存する。 |
+| 対象読者 | プロダクトオーナー、AIエージェント、開発者、レビュー担当者 |
+| 更新タイミング | 承認済みの決定が作成・変更・上書き・矛盾を指摘された時 |
+| 監査基準 | 既存の一次文書を調査し2026-08-28に同期。2026-08-29に言語統一・参照修正を実施。 |
 
-## ADR-001 — Work-date basis for overnight attendance
+## ADR-001 — 日跨ぎ勤務の対象勤務日の基準
 
-**Decision:** Attendance belongs to the JST calendar date of clock-in. A clock-out time not later than clock-in is interpreted as the next day; month-end overnight work belongs to the clock-in month.
+**決定：** 勤怠はJSTの出勤打刻日に属する。出勤時刻以前（同時刻を含む）の退勤時刻は翌日とみなす。月末に日を跨ぐ勤務は出勤月に属する。
 
-**Status:** APPROVED
+**状態：** 承認済み
 
-**Date:** Recorded in `D-01`; exact approval timestamp is not available from repository evidence.
+**日付：** `D-01`に記録。正確な承認日時はリポジトリの証跡からは不明。
 
-**Reason:** Explicit Product Owner decision captured in primary requirements.
+**理由：** 一次要件に明記されたプロダクトオーナーの明示的決定。
 
-**Alternatives:** Clock-out-date basis; splitting attendance across dates. Neither is selected.
+**代替案：** 退勤日基準、勤怠の分割計上。いずれも不採用。
 
-**Consequences:** `work_date` must match JST clock-in date; validation and month submission use start month.
+**影響：** `work_date`はJSTの出勤日と一致させる必要があり、検証・月次提出は開始月を使用する。
 
-**Evidence:** `../01_requirements.md` D-01 and overnight-work rules; `../04_database.md`.
+**根拠：** `../01_requirements.md` D-01および日跨ぎ勤務ルール、`../04_database.md`。
 
-## ADR-002 — Initial leave scope
+## ADR-002 — 初期リリースの休暇スコープ
 
-**Decision:** Do not implement paid leave, absence, compensatory leave, or related request/approval flow in the initial release.
+**決定：** 初期リリースでは有給休暇、欠勤、代休およびそれに関連する申請/承認フローを実装しない。
 
-**Status:** APPROVED
+**状態：** 承認済み
 
-**Date:** Recorded in `D-03`; exact approval timestamp unavailable from repository evidence.
+**日付：** `D-03`に記録。正確な承認日時はリポジトリの証跡からは不明。
 
-**Reason:** Product Owner direction; preserve simple initial scope.
+**理由：** プロダクトオーナーの方針。初期スコープをシンプルに保つため。
 
-**Alternatives:** Include leave display/requests/approval in MVP. Not selected.
+**代替案：** MVPに休暇表示/申請/承認を含める。不採用。
 
-**Consequences:** Missing attendance is not excused by leave in initial validation; future `leave` module is only a design idea.
+**影響：** 未提出は休暇によって免除されない（初期検証において）。将来の`leave`モジュールは設計上のアイデアに留まる。
 
-**Evidence:** `../01_requirements.md` D-03; `../04_database.md` submission validation.
+**根拠：** `../01_requirements.md` D-03、`../04_database.md`提出検証。
 
-## ADR-003 — MVP architecture and hosting direction
+## ADR-003 — MVPアーキテクチャとホスティング方針
 
-**Decision:** Use a modular Spring Boot application with same-origin Vanilla JavaScript UI, hosted as a Docker-based Render Free Web Service and connected to Neon Free PostgreSQL. GitHub-linked `main` deployment and GitHub Actions scheduled reminder invocation are intended. AWS is a later production option; OCI is not an MVP option.
+**決定：** モジュラーモノリスのSpring Bootアプリケーションと同一オリジンのVanilla JavaScript UIを、Docker化されたRender Free Webサービスとしてホストし、Neon Free PostgreSQLに接続する。GitHub連携による`main`自動デプロイと、GitHub Actionsによるスケジュール型リマインド起動を想定する。AWSは将来の本番選択肢。OCIはMVP選択肢としない。
 
-**Status:** APPROVED for MVP direction; not implemented.
+**状態：** MVP方針として承認済み。未実装。
 
-**Date:** Phase 2 approval is recorded in roadmap; exact approval timestamp unavailable from repository evidence.
+**日付：** ロードマップにPhase 2承認として記録。正確な承認日時はリポジトリの証跡からは不明。
 
-**Reason:** Maintainability and simplicity; Docker portability to AWS; avoid OCI account requirements; Render supports Docker/GitHub deployment; Neon avoids Render Free Postgres 30-day expiry.
+**理由：** 保守性とシンプルさ。DockerによるAWSへの移植性。OCIのアカウント要件回避。RenderはDocker/GitHubデプロイに対応。NeonはRender Free Postgresの30日失効を回避できる。
 
-**Alternatives:** OCI Always Free (superseded/prohibited for MVP), Fly.io (not selected due to card requirement), Railway (not selected due to limited continuous free capacity), Cloudflare Workers/D1 (not selected due to Spring Boot migration cost), AWS/GCP (not MVP).
+**代替案：** OCI Always Free（MVPでは上書き/禁止）、Fly.io（カード登録要件のため不採用）、Railway（継続的な無料枠容量が限定的なため不採用）、Cloudflare Workers/D1（Spring Boot移行コストのため不採用）、AWS/GCP（MVP対象外）。
 
-**Consequences:** Render Free idle shutdown is accepted for MVP; scheduled notification requires external GitHub Actions trigger; no cloud-specific application API should be introduced. Production deployment is not designed/approved yet.
+**影響：** Render Freeのアイドル停止をMVPとして受容する。スケジュール通知には外部のGitHub Actionsトリガーが必要。クラウド固有のアプリケーションAPIは導入しない。本番デプロイはまだ設計/承認されていない。
 
-**Evidence:** `../02_architecture.md`, `../03_tech-stack.md`, `../00_プロジェクトロードマップ.md` Phase 2.
+**根拠：** `../02_architecture.md`、`../03_tech-stack.md`、`roadmap.md` Phase 2（旧`00_プロジェクトロードマップ.md`は移行後2026-08-29に削除済み）。
 
-## ADR-004 — Authentication and password storage
+## ADR-004 — 認証とパスワード保管
 
-**Decision:** Use employee ID/password authentication with Spring Security server-side sessions and Argon2id password hashing.
+**決定：** 社員ID/パスワード認証を、Spring Securityのサーバーサイドセッションと Argon2id パスワードハッシュで実現する。
 
-**Status:** APPROVED as Phase 2 design; not implemented.
+**状態：** Phase 2設計として承認済み。未実装。
 
-**Date:** Exact approval timestamp unavailable from repository evidence.
+**日付：** 正確な承認日時はリポジトリの証跡からは不明。
 
-**Reason:** Small internal user population; same-origin `HttpOnly` session cookie avoids browser token storage. Argon2id is documented as selected security practice.
+**理由：** 小規模な社内利用者数。同一オリジンの`HttpOnly`セッションクッキーによりブラウザ側のトークン保存を回避できる。Argon2idは採用済みのセキュリティベストプラクティスとして文書化されている。
 
-**Alternatives:** OAuth/OIDC, Keycloak, JWT, bcrypt.
+**代替案：** OAuth/OIDC、Keycloak、JWT、bcrypt。
 
-**Consequences:** Need CSRF controls, session fixation protection, rate limits, secure cookie settings, administrator-led reset process, and an Argon2 implementation verification in Phase 6/7.
+**影響：** CSRF対策、セッション固定化対策、レート制限、セキュアなクッキー設定、管理者主導のリセット運用、Phase 6/7でのArgon2実装検証が必要。
 
-**Evidence:** `../03_tech-stack.md`, `../05_api.md`, `../07_security.md`.
+**根拠：** `../03_tech-stack.md`、`../05_api.md`、`../07_security.md`。
 
-## ADR-005 — Web Push and administrator status visibility
+## ADR-005 — Web Pushと管理者向け状態可視化
 
-**Decision:** Use Web Push plus in-app warnings; show aggregated Push state in the admin UI. No external contact feature for users who deny/disable notifications in the initial release.
+**決定：** Web Pushとアプリ内警告を併用し、管理画面にPushの集約状態を表示する。初期リリースでは、通知を拒否/無効化した利用者への外部連絡機能は設けない。
 
-**Status:** APPROVED as specified in the primary requirements/API; not implemented.
+**状態：** 一次要件/APIで指定の通り承認済み。未実装。
 
-**Date:** `D-04` recorded; exact approval timestamp unavailable from repository evidence.
+**日付：** `D-04`に記録。正確な承認日時はリポジトリの証跡からは不明。
 
-**Reason:** Support the core missed-submission objective without SMS/paid email. Respect browser permission and privacy constraints.
+**理由：** 有料SMS/メールを使わずに未提出防止という中核目的を支援する。ブラウザの許可設定とプライバシー制約を尊重する。
 
-**Alternatives:** Email, SMS, external contact workflow. Not selected for initial scope.
+**代替案：** メール、SMS、外部連絡ワークフロー。初期スコープでは不採用。
 
-**Consequences:** Browser-only notifications cannot guarantee reachability; administrator status list is the fallback. A per-browser random `installation_id` is designed instead of device fingerprinting.
+**影響：** ブラウザのみの通知では到達を保証できず、管理者の状態一覧がフォールバックとなる。デバイスフィンガープリンティングの代わりに、ブラウザごとのランダムな`installation_id`を設計している。
 
-**Evidence:** `../01_requirements.md` D-04 and Push sections; `../04_database.md`; `../05_api.md`.
+**根拠：** `../01_requirements.md` D-04およびPush関連セクション、`../04_database.md`、`../05_api.md`。
 
-## ADR-006 — Monthly submission record lifecycle
+## ADR-006 — 月次提出レコードのライフサイクル
 
-**Decision:** Do not create all employees’ monthly submission records at month start. Create `DRAFT` with the first attendance save; a successful submission with no existing record creates `SUBMITTED`; GET/list views treat absence as display-only `DRAFT`.
+**決定：** 月初に全社員分の月次提出レコードを一括作成しない。最初の勤怠保存時に`DRAFT`を作成し、既存レコードのない状態での提出成功は`SUBMITTED`を作成する。GET/一覧表示では、レコード不在を表示上のみ`DRAFT`として扱う。
 
-**Status:** APPROVED — whole-phase Q-01 approved 2026-08-28.
+**状態：** 承認済み — Q-01としてフェーズ全体を2026-08-28に承認。
 
-**Date:** Approved as part of Phase 3 whole-phase approval 2026-08-28 (originally recorded as Phase 3 review).
+**日付：** 当初Phase 3レビューとして記録され、2026-08-28にPhase 3全体承認の一部として承認。
 
-**Reason:** Avoid empty monthly records and dependence on a monthly batch while ensuring unoperated employees appear in admin lists.
+**理由：** 空の月次レコードや月次バッチへの依存を避けつつ、未操作の社員を管理者一覧に表示させるため。
 
-**Alternatives:** Create a row for every active employee monthly; create `DRAFT` on failed submission. Not selected.
+**代替案：** 全アクティブ社員分を月初に作成する、提出失敗時に`DRAFT`を作成する。いずれも不採用。
 
-**Consequences:** Admin queries need left joins and submission API needs careful transactional behavior.
+**影響：** 管理者向けクエリはLEFT JOINが必要で、提出APIは慎重なトランザクション制御が必要。
 
-**Evidence:** `../04_database.md`, `../05_api.md`, Q-01 approval 2026-08-28.
+**根拠：** `../04_database.md`、`../05_api.md`、2026-08-28のQ-01承認。
 
-## ADR-007 — Employee data on MVP external services
+## ADR-007 — MVP外部サービス上での社員データ取扱い
 
-**Decision:** Product Owner approved handling real employee data on Render Free + Neon Free MVP, with HTTPS, authorization, audit, and secrets management required.
+**決定：** プロダクトオーナーは、HTTPS・認可・監査・秘密情報管理を必須とした上で、Render Free + Neon FreeのMVP基盤で実社員データを扱うことを承認した。
 
-**Status:** APPROVED
+**状態：** 承認済み
 
-**Date:** `D-06` recorded; exact approval timestamp unavailable from repository evidence.
+**日付：** `D-06`に記録。正確な承認日時はリポジトリの証跡からは不明。
 
-**Reason:** Explicit Product Owner approval.
+**理由：** プロダクトオーナーの明示的な承認。
 
-**Alternatives:** Dummy data only until company approval. Superseded by D-06.
+**代替案：** 会社承認までダミーデータのみとする。D-06により上書き済み。
 
-**Consequences:** Data retention/deletion remains unresolved (`R-03`).
+**影響：** データ保持/削除は未解決のまま（`R-03`）。
 
-**Evidence:** `../01_requirements.md` D-06; `../02_architecture.md`; `../07_security.md`.
+**根拠：** `../01_requirements.md` D-06、`../02_architecture.md`、`../07_security.md`。
 
-## ADR-008 — Reminder-delivery idempotency and Push subscription protection
+## ADR-008 — リマインド配信のべき等性とPush購読の保護
 
-**Decision:** Persist a monthly deadline for every target month. Use a durable, committed `notification_deliveries` reservation with `UNIQUE(employee_id, notification_date)` to provide at-most-once Push delivery attempts per employee and JST date. Persist per-subscription outcomes separately. Store the complete Web Push subscription only as application-layer AES-256-GCM ciphertext; retain revoked installation rows while clearing their encrypted subscription data. Make audit logs append-only through a non-owner runtime DB role plus a rejecting database trigger.
+**決定：** 対象月ごとに月次締切を永続化する。`UNIQUE(employee_id, notification_date)`を持つ、コミット済みで永続的な`notification_deliveries`予約により、社員・JST日付単位で「最大1回」のPush送信試行を保証する。購読単位の結果は別途永続化する。Web Push購読情報全体は、アプリケーション層のAES-256-GCM暗号文としてのみ保存する。無効化されたインストールの行は、暗号化済み購読データをクリアした上で保持する。監査ログは、非オーナーのランタイムDBロールと拒否用のDBトリガーにより追記専用とする。
 
-**Status:** APPROVED — whole-phase Q-01 approved 2026-08-28 (Phase 3 complete).
+**状態：** 承認済み — Q-01としてフェーズ全体を2026-08-28に承認（Phase 3完了）。
 
-**Date:** 2026-08-26 design decision; whole-phase approval 2026-08-28.
+**日付：** 2026-08-26に設計決定、2026-08-28にフェーズ全体承認。
 
-**Reason:** Resolve the review findings for deadline persistence, reminder deduplication, Push subscription inconsistency/protection, database-enforced integrity, and audit immutability without adding paid infrastructure.
+**理由：** 締切の永続化、リマインドの重複排除、Push購読の不整合/保護、DBによる整合性強制、監査の不変性に関するレビュー指摘を、有料インフラを追加せずに解決するため。
 
-**Alternatives:** Retrying notifications until provider success (rejected because it can duplicate a notification); plaintext structured Push columns (rejected because endpoint and keys are sensitive); PostgreSQL-held encryption keys or paid KMS (rejected for the MVP's security and free-operation goals); physical deletion of subscriptions (rejected because it loses state/history).
+**代替案：** プロバイダ成功までリトライする方式（重複通知の恐れがあるため不採用）、平文の構造化Pushカラム（エンドポイントと鍵が機微情報のため不採用）、PostgreSQL保持の暗号鍵や有料KMS（MVPのセキュリティ・無料運用の目標に反するため不採用）、購読の物理削除（状態/履歴を失うため不採用）。
 
-**Consequences:** A crash after reservation may result in a missed Push, but not a second request for the same employee/JST date. Push-key recovery becomes a Phase 5 operational requirement. `R-03` remains unresolved because it concerns retention periods, not idempotency or storage security.
+**影響：** 予約後のクラッシュはPushの取りこぼしを招く可能性があるが、同一社員/JST日付への二重送信要求は発生しない。Push鍵の復旧はPhase 5の運用要件となる。`R-03`はべき等性や保存セキュリティの問題ではなく保持期間の問題として未解決のまま残る。
 
-**Evidence:** `../04_database.md`, `../05_api.md`, `../07_security.md`, review direction recorded on 2026-08-26.
+**根拠：** `../04_database.md`、`../05_api.md`、`../07_security.md`、2026-08-26のレビュー方針。
 
-## ADR-009 — Bootstrap via environment variable, invitation token, and last-admin protection
+## ADR-009 — 環境変数によるBootstrap、招待トークン、最後のADMIN保護
 
-**Decision:** Create the initial `ADMIN` idempotently from `BOOTSTRAP_ADMIN_CODE` / `BOOTSTRAP_ADMIN_PASSWORD` / `BOOTSTRAP_ADMIN_NAME` / `BOOTSTRAP_ADMIN_DEPARTMENT_ID` only when no active `ADMIN` exists; otherwise do nothing. Do not provide a public `/setup` screen/API. Create employees and additional admins only via an authenticated `ADMIN`'s invitation (`POST /admin/employees` without password, `is_active=false`, token valid 24h, single-use) and activation (`POST /auth/activate` with token + new password). Prohibit demotion/deactivation of the last active `ADMIN` with `409 LAST_ADMIN_RESTRICTION` (application-enforced via `SELECT ... FOR UPDATE` count, not a DB CHECK). Allow multiple `ADMIN`s.
+**決定：** 初期`ADMIN`は、有効な`ADMIN`が存在しない場合に限り、`BOOTSTRAP_ADMIN_CODE`/`BOOTSTRAP_ADMIN_PASSWORD`/`BOOTSTRAP_ADMIN_NAME`/`BOOTSTRAP_ADMIN_DEPARTMENT_ID`から冪等に作成する。それ以外は何もしない。公開の`/setup`画面/APIは設けない。社員および追加の管理者は、認証済み`ADMIN`による招待（`POST /admin/employees`、パスワードなし、`is_active=false`、トークン有効期限24時間、単回使用）と有効化（`POST /auth/activate`、トークン＋新パスワード）でのみ作成する。最後の有効な`ADMIN`の降格/無効化は、DBのCHECK制約ではなく`SELECT ... FOR UPDATE`によるアプリケーション側の件数検証で`409 LAST_ADMIN_RESTRICTION`として禁止する。`ADMIN`は複数人存在可能とする。
 
-**Status:** APPROVED — supplement to Q-01, approved 2026-08-28.
+**状態：** 承認済み — Q-01の追補として2026-08-28に承認。
 
-**Date:** 2026-08-28.
+**日付：** 2026-08-28。
 
-**Reason:** Close the Bootstrap gap (empty DB has no ADMIN to call `POST /admin/employees`) without exposing a public setup endpoint. Invitation tokens prevent admins from knowing plaintext passwords and satisfy `password_hash NOT NULL` while keeping `07_security.md:2`'s admin-issued account rule. Last-admin protection prevents `ADMIN=0` lockout.
+**理由：** 空のDBには`POST /admin/employees`を呼び出せるADMINが存在しないというBootstrapの欠落を、公開のセットアップエンドポイントを露出せずに解消するため。招待トークンにより管理者が平文パスワードを知ることを防ぎつつ、`password_hash NOT NULL`制約と`07_security.md:2`の「管理者発行アカウント」ルールを満たす。最後のADMIN保護は`ADMIN=0`によるロックアウトを防ぐ。
 
-**Alternatives:** Public `/setup` screen (rejected: exposed window), Flyway seed with plaintext password in Git (rejected: secret in repo), manual `psql` INSERT (rejected: no audit).
+**代替案：** 公開の`/setup`画面（露出した窓口となるため不採用）、平文パスワードをGitに含むFlywayシード（秘密情報がリポジトリに残るため不採用）、手動の`psql` INSERT（監査証跡がないため不採用）。
 
-**Consequences:** Bootstrap password must be changed after first login (recommended, audited as `PASSWORD_CHANGED`). `employee_invitations` requires `V4` migration and `POST /auth/activate` + `409` handling. `GET /admin/employees` and `S-08`/`S-11` must handle invitation state.
+**影響：** Bootstrapパスワードは初回ログイン後の変更が推奨される（監査ログに`PASSWORD_CHANGED`として記録）。`employee_invitations`には`V4`マイグレーションと`POST /auth/activate`＋`409`ハンドリングが必要。`GET /admin/employees`と`S-08`/`S-11`は招待状態を扱う必要がある。
 
-**Evidence:** `../01_requirements.md` D-07/08/09, `../04_database.md:3,6a`, `../05_api.md:2,5,7`, `../06_screen-design.md:1,3,5`, `../07_security.md:2,4`.
+**根拠：** `../01_requirements.md` D-07/D-08/D-09、`../04_database.md:3,6a`、`../05_api.md:2,5,7`、`../06_screen-design.md:1,3,5`、`../07_security.md:2,4`。

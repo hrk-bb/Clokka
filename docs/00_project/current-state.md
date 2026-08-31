@@ -1,103 +1,104 @@
-# Clokka Current State
+# Clokka 現在の状態
 
-| Item | Value |
+| 項目 | 内容 |
 | --- | --- |
-| Purpose | Provide the next agent with a fact-based, immediately actionable project snapshot. |
-| Audience | AI agents, Product Owner, developers, reviewers. |
-| Update timing | At the end of every meaningful work session and before any handoff. |
-| Last repository/design audit | 2026-08-28. |
+| 目的 | 次に作業するエージェントへ、事実に基づき即座に行動可能なプロジェクトの現状を提供する。 |
+| 対象読者 | AIエージェント、プロダクトオーナー、開発者、レビュー担当者 |
+| 更新タイミング | 意味のある作業セッションの終了時、および引き継ぎの前に必ず更新する。 |
+| 最終監査日 | 2026-08-29（言語統一・文書整合性の是正を反映） |
 
-## Current Phase
+## 現在のPhase
 
-**Phase 3 — Detailed design: `COMPLETED` / `APPROVED` (Q-01 approved 2026-08-28).** Phase 4 — Development, quality, and Git rules design: `IN_PROGRESS` / `REVIEW`. Phase 3 design documents are now approved as a whole including the screen-design draw.io/PNG.
+**Phase 3 — 詳細設計：`COMPLETED` / `APPROVED`（Q-01承認：2026-08-28）。** Phase 4 — 開発・品質・Gitルール設計：`IN_PROGRESS` / `REVIEW`。Phase 3の設計文書は、画面設計のdraw.io/PNG（ただしS-11のPNGは未作成、`known-issues.md` KI-015）を含め、全体として承認済み。
 
-## Overall Status
+## 全体ステータス
 
-Design-first project. Phase 1 and Phase 2 are recorded as complete/approved by the roadmap; Phase 3 is under review. There is no application implementation, test suite, Docker configuration, CI workflow, deployment configuration, or operational runbook in the repository.
+設計優先のプロジェクト。Phase 1・Phase 2はロードマップ上「完了・承認済み」として記録されている。Phase 3はレビューを経て承認済み。リポジトリにはアプリケーション実装、テストスイート、Docker設定、CIワークフロー、デプロイ設定、運用手順のいずれも存在しない。
 
-## Completed
+## 完了したこと
 
-- Phase 1 requirements/governance is recorded as completed.
-- Phase 2 architecture and technology selection is recorded as completed and approved.
-- Phase 3 detailed design (DB/API/UI/security) is completed and approved as a whole (Q-01 approved 2026-08-28). Individual Phase 3 decisions including monthly-deadline persistence, encrypted Push subscription storage, reminder idempotency, append-only audit enforcement, and the Mermaid+draw.io screen design (12 PNG) are approved.
-- The handoff audit documents and `AGENTS.md` were created on 2026-08-19 and synchronized with primary documents on 2026-08-24; repository structure was normalized before Phase 4 (`frontend/`/`backend/` `.gitkeep`, workflows `.gitkeep`, branch file rename).
-- The handoff audit documents and `AGENTS.md` were created on 2026-08-19 and synchronized with primary documents on 2026-08-24.
+- Phase 1（要件・ガバナンス）は完了として記録されている。
+- Phase 2（アーキテクチャ・技術選定）は完了・承認済みとして記録されている。
+- Phase 3の詳細設計（DB/API/UI/セキュリティ）は全体として完了・承認済み（Q-01、2026-08-28）。月次締切の永続化、Push購読の暗号化保存、通知のべき等性、追記専用の監査ログ強制、Mermaid＋draw.io（PNG 12枚。S-11除く）の画面設計を含む個別のPhase 3決定はすべて承認済み。
+- 初期管理者Bootstrap・招待・最後のADMIN保護（D-07/D-08/D-09）はQ-01の追補として2026-08-28に承認済み（ADR-009参照）。
+- 引き継ぎ監査文書と`AGENTS.md`は2026-08-19に作成され、2026-08-24に一次文書と同期された。Phase 4着手前にリポジトリ構成を正規化済み（`frontend/`/`backend/`の`.gitkeep`、workflowsの`.gitkeep`、ブランチファイルの改名）。
+- 2026-08-29：削除済みファイル（`00_プロジェクトロードマップ.md`）へのダングリング参照、D-07/D-08/D-09の承認状態の矛盾、S-11画面の視覚資産欠落、ドキュメント言語の不統一、`AGENTS.md`と`09_development-rules.md`の重複記述を是正。
 
-## In Progress
+## 進行中
 
-- Phase 4 governance/test document review (`08_directory.md` through `11_test-plan.md`).
-- Repository structure audit follow-up from 2026-08-28 (RS-001 through RS-010).
+- Phase 4のガバナンス/テスト文書レビュー（`08_directory.md`〜`11_test-plan.md`）。
+- 2026-08-28のリポジトリ構成監査のフォローアップ（RS-001〜RS-010）。
 
-## Not Started
+## 未着手
 
-- Phases 5 through 11.
-- All implementation work: backend, frontend, database migration, Docker, tests, CI, deployment, operations, manuals.
+- Phase 5〜11。
+- 実装作業全般：バックエンド、フロントエンド、DBマイグレーション、Docker、テスト、CI、デプロイ、運用、マニュアル。
 
-## Blocked
+## ブロッカー
 
-No technical blocker. Phase 4 is now unblocked by Q-01 approval; Phase 5+ remains gated by Phase 4 approval.
+技術的なブロッカーはなし。Q-01承認によりPhase 4は進行可能。Phase 5以降はPhase 4承認（Q-04）待ちの状態が続く。
 
-## Pending Approval
+## 承認待ち事項
 
-| ID | Item |
+| ID | 内容 |
 | --- | --- |
-| Q-01 | **RESOLVED 2026-08-28** — Phase 3 whole-phase approved. No longer pending. |
-| Q-04 | Phase 4 governance/test documents review (`08`–`11` plus PR template). |
+| Q-01 | **解決済み（2026-08-28）** — Phase 3を全体として承認。保留事項ではない。 |
+| Q-04 | Phase 4のガバナンス/テスト文書レビュー（`08`〜`11`およびPRテンプレート）。 |
 
-## Current Task
+## 現在のタスク
 
-Q-01 was approved 2026-08-28. Phase 3 is now marked COMPLETED/APPROVED. The repository structure was normalized before Phase 4. Phase 4 documents are being created for review; no implementation code has been started.
+Q-01は2026-08-28に承認され、Phase 3は`COMPLETED`/`APPROVED`。Phase 4着手前にリポジトリ構成を正規化済み。Phase 4文書はレビュー用に作成中であり、実装コードは未着手。
 
-## Next Task
+## 次のタスク
 
-1. Complete Phase 4 document review (`08_directory.md`, `09_development-rules.md`, `10_branch-strategy.md`, `11_test-plan.md` plus PR/issue templates).
-2. Obtain Product Owner approval for Phase 4 (Q-04).
-3. Only after Q-04, create Phase 5 deployment/operation design; still do not start Phase 6 implementation before Phase 4/5 approval.
+1. Phase 4文書レビューの完了（`08_directory.md`、`09_development-rules.md`、`10_branch-strategy.md`、`11_test-plan.md`、PR/Issueテンプレート）。
+2. Phase 4のプロダクトオーナー承認（Q-04）を得る。
+3. Q-04承認後にPhase 5（デプロイ・運用設計）を作成する。Phase 4/5承認前にPhase 6（実装）は開始しない。
 
-## Repository State
+## リポジトリの状態
 
-| Item | Observed state |
+| 項目 | 観測された状態 |
 | --- | --- |
-| Branch | `main` at `c69a8c4` (`chore: normalize repository structure before phase 4`); also at `ac86dbb`/`3d063bf` screen-design updates. Working tree was clean before this Phase 4 start. |
-| Latest commit / recent history | `c69a8c4` normalizes structure (frontend/backend, workflows, branch file). Prior `ac86dbb` adds `06_screen-design.drawio` + 12 PNG. `6422de9` merges Phase 3 data-integrity design. Git history and remote are verifiable. |
-| Remote / GitHub URL | `origin` fetch/push URL is `https://github.com/hrk-bb/Clokka.git`. |
-| Uncommitted changes | Phase 4 design documents are being created; no implementation code yet. |
-| Source code | None found. `frontend/.gitkeep` and `backend/.gitkeep` are placeholders only; no application source was added. |
-| Tests | None found. No build/test configuration or test source exists. |
-| CI/CD | No workflow; `.github/workflows/` contains `.gitkeep` only. `.github/pull_request_template.md` is still empty/placeholder for Phase 4. |
-| Docker / Render / Neon config | None found: no Dockerfile, Compose file, Render manifest, environment template, or Neon connection configuration. |
-| Secrets scan | No `.env`, key/certificate/credential-named files, or obvious secret values were found in tracked workspace files. `.gitignore` is still missing (KI-010); prevention is not yet implemented. |
+| ブランチ | `main`、コミット`c69a8c4`（`chore: normalize repository structure before phase 4`）。直前に`ac86dbb`/`3d063bf`で画面設計を更新。Phase 4開始前のワーキングツリーはクリーンだった。 |
+| 最新コミット/直近の履歴 | `c69a8c4`で構成を正規化（frontend/backend、workflows、ブランチファイル）。直前の`ac86dbb`で`06_screen-design.drawio`＋PNG12枚を追加。`6422de9`でPhase 3データ整合性設計をマージ。Git履歴とリモートは検証可能。 |
+| リモート/GitHub URL | `origin`のfetch/push URLは`https://github.com/hrk-bb/Clokka.git`。 |
+| 未コミットの変更 | Phase 4設計文書を作成中。実装コードはまだなし。 |
+| ソースコード | なし。`frontend/.gitkeep`と`backend/.gitkeep`はプレースホルダのみで、アプリケーションソースは未追加。 |
+| テスト | なし。ビルド/テスト設定やテストソースは存在しない。 |
+| CI/CD | ワークフローなし。`.github/workflows/`には`.gitkeep`のみ。`.github/pull_request_template.md`はPhase 4向けに内容はあるが、参照している`ci.yml`自体はまだ存在しない。 |
+| Docker / Render / Neon設定 | なし：Dockerfile、Composeファイル、Renderマニフェスト、環境変数テンプレート、Neon接続設定のいずれも存在しない。 |
+| 秘密情報スキャン | 追跡対象のワークスペースファイルに`.env`、鍵/証明書/認証情報名のファイル、明白な秘密情報の値は見つからなかった。`.gitignore`はまだ存在しない（KI-010）。 |
 
-## Documentation Status
+## 文書ステータス
 
-| Document group | State |
+| 文書グループ | 状態 |
 | --- | --- |
-| `01_requirements.md` | Phase 1 approved primary requirements. |
-| `02_architecture.md`, `03_tech-stack.md` | Phase 2 approved primary documents. |
-| `04_database.md`, `05_api.md`, `06_screen-design.md`, `07_security.md` | Phase 3 approved (Q-01 2026-08-28). Includes draw.io + 12 PNG. |
-| Japanese-named docs | Explicitly marked as history/initial outlines; current primary files are linked from their headers. |
-| Phase 4/5 docs | Phase 4 docs (`08`–`11`) are now in review (created 2026-08-28). Phase 5 docs (`12`, `13`) remain NOT_STARTED placeholders. |
-| README | Exists and links to `docs/01_requirements.md` as the primary design source. |
+| `01_requirements.md` | Phase 1承認済みの一次要件文書。 |
+| `02_architecture.md`、`03_tech-stack.md` | Phase 2承認済みの一次文書。 |
+| `04_database.md`、`05_api.md`、`06_screen-design.md`、`07_security.md` | Phase 3承認済み（Q-01、2026-08-28）。draw.io＋PNG12枚を含む（S-11のPNGは未作成、KI-015）。 |
+| 移行前の日本語文書 | 内容移行後、2026-08-29に削除済み。`01_requirements.md` 8章に移行対応表として記録されている。現存するファイルへのリンクではない。 |
+| Phase 4/5文書 | Phase 4文書（`08`〜`11`）はレビュー中（2026-08-28作成）。Phase 5文書（`12`、`13`）は未着手のプレースホルダ。 |
+| README | 存在し、`docs/01_requirements.md`を一次設計文書として参照している。 |
 
-## Important Warnings
+## 重要な注意事項
 
-1. Do not claim any feature has been implemented, tested, deployed, or run: no evidence exists in this repository.
-2. Do not start implementation until Phase 3 is explicitly approved.
-3. Do not silently alter the approved requirements or Phase 2 architecture.
-4. Do not put secrets or real employee data in source control.
-5. Do not implement notification scheduling until Phase 3 is approved; its persistence model is now documented in the review design.
+1. リポジトリに証跡のない機能を「実装済み・テスト済み・デプロイ済み」と主張しないこと。
+2. Phase 3が明示的に承認されるまで実装を開始しないこと（Phase 3は承認済み、Phase 4/5は未承認）。
+3. 承認済みの要件やPhase 2アーキテクチャを無断で変更しないこと。
+4. 秘密情報や実在の社員データをソース管理下に置かないこと。
+5. 計画段階の項目を実装済み/テスト済み/デプロイ済みと表記しないこと。
 
-## Handoff Self-audit
+## 引き継ぎセルフチェック
 
-| Question | Result | Evidence / action |
+| 質問 | 結果 | 根拠/対応 |
 | --- | --- | --- |
-| Q1: Can a new AI understand the project without chat history? | Yes, with warnings. | Read order and overview are provided. |
-| Q2: Can it identify the current phase? | Yes. | Phase 3 is `IN_PROGRESS`/`REVIEW`; Phase 1/2 completed. |
-| Q3: Can it identify the next task? | Yes. | Next Task section gives the gated sequence. |
-| Q4: Can it identify what not to change silently? | Yes. | `AGENTS.md` and Important Warnings. |
-| Q5: Can it identify unimplemented features? | Yes. | No source/test/CI exists; feature status matrix is in `handoff.md`. |
-| Q6: Can it identify known problems? | Yes. | `known-issues.md`. |
-| Q7: Can it identify decisions/reasons? | Yes, where documented. | `decisions.md`; unknown reasons are marked unknown. |
-| Q8: Can it identify document/code conflicts? | Yes. | `known-issues.md`; code is absent and current document conflicts are recorded. |
-| Q9: Can it identify approvals needed? | Yes. | Pending Approval section. |
-| Q10: Can work continue if this agent disappears? | `READY_WITH_WARNINGS`. | Git remote/history and Phase 3 approval remain unverified/pending. |
+| Q1: チャット履歴なしで新しいAIがプロジェクトを理解できるか？ | はい、注意事項付きで可能。 | 読む順序と概要を提供している。 |
+| Q2: 現在のPhaseを特定できるか？ | はい。 | Phase 3は承認済み、Phase 4は`IN_PROGRESS`/`REVIEW`。 |
+| Q3: 次のタスクを特定できるか？ | はい。 | 「次のタスク」節にゲート付きの手順を記載。 |
+| Q4: 無断で変更してはいけないものを特定できるか？ | はい。 | `AGENTS.md`と「重要な注意事項」。 |
+| Q5: 未実装の機能を特定できるか？ | はい。 | ソース/テスト/CIは存在せず、機能状況一覧は`handoff.md`にある。 |
+| Q6: 既知の問題を特定できるか？ | はい。 | `known-issues.md`。 |
+| Q7: 決定事項とその理由を特定できるか？ | 記録がある範囲でははい。 | `decisions.md`。理由不明の場合はその旨を明記。 |
+| Q8: 文書間・コード間の矛盾を特定できるか？ | はい。 | `known-issues.md`。コードは存在せず、現時点の文書矛盾は2026-08-29に是正済み。 |
+| Q9: 必要な承認事項を特定できるか？ | はい。 | 「承認待ち事項」節。 |
+| Q10: このエージェントがいなくなっても作業を継続できるか？ | `READY_WITH_WARNINGS`。 | Gitリモート/履歴とPhase 3承認は検証済みだが、Phase 4/5承認は未了。 |
