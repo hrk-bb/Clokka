@@ -134,3 +134,19 @@
 **Consequences:** A crash after reservation may result in a missed Push, but not a second request for the same employee/JST date. Push-key recovery becomes a Phase 5 operational requirement. `R-03` remains unresolved because it concerns retention periods, not idempotency or storage security.
 
 **Evidence:** `../04_database.md`, `../05_api.md`, `../07_security.md`, review direction recorded on 2026-08-26.
+
+## ADR-009 — Bootstrap via environment variable, invitation token, and last-admin protection
+
+**Decision:** Create the initial `ADMIN` idempotently from `BOOTSTRAP_ADMIN_CODE` / `BOOTSTRAP_ADMIN_PASSWORD` / `BOOTSTRAP_ADMIN_NAME` / `BOOTSTRAP_ADMIN_DEPARTMENT_ID` only when no active `ADMIN` exists; otherwise do nothing. Do not provide a public `/setup` screen/API. Create employees and additional admins only via an authenticated `ADMIN`'s invitation (`POST /admin/employees` without password, `is_active=false`, token valid 24h, single-use) and activation (`POST /auth/activate` with token + new password). Prohibit demotion/deactivation of the last active `ADMIN` with `409 LAST_ADMIN_RESTRICTION` (application-enforced via `SELECT ... FOR UPDATE` count, not a DB CHECK). Allow multiple `ADMIN`s.
+
+**Status:** APPROVED — supplement to Q-01, approved 2026-08-28.
+
+**Date:** 2026-08-28.
+
+**Reason:** Close the Bootstrap gap (empty DB has no ADMIN to call `POST /admin/employees`) without exposing a public setup endpoint. Invitation tokens prevent admins from knowing plaintext passwords and satisfy `password_hash NOT NULL` while keeping `07_security.md:2`'s admin-issued account rule. Last-admin protection prevents `ADMIN=0` lockout.
+
+**Alternatives:** Public `/setup` screen (rejected: exposed window), Flyway seed with plaintext password in Git (rejected: secret in repo), manual `psql` INSERT (rejected: no audit).
+
+**Consequences:** Bootstrap password must be changed after first login (recommended, audited as `PASSWORD_CHANGED`). `employee_invitations` requires `V4` migration and `POST /auth/activate` + `409` handling. `GET /admin/employees` and `S-08`/`S-11` must handle invitation state.
+
+**Evidence:** `../01_requirements.md` D-07/08/09, `../04_database.md:3,6a`, `../05_api.md:2,5,7`, `../06_screen-design.md:1,3,5`, `../07_security.md:2,4`.
