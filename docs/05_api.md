@@ -26,7 +26,7 @@
 | `GET /csrf` | ログイン済み | 状態変更用のCSRFトークンを返す。 |
 | `POST /auth/activate` | 未認証（招待トークン） | 招待トークンと新パスワードで社員を有効化する。`token`（平文）と `newPassword` を受け取る。成功時は `is_active=true` となりセッションを発行する。トークンは1回限り、有効期限24時間。 |
 
-`POST /auth/activate` は `employee_invitations.token_hash` と突合し、`expires_at` と `used_at IS NULL` を検証する。失敗時は `404`（トークン不明）または `410`（期限切れ/使用済み）を返し、成功時は `used_at` を設定し監査ログ `EMPLOYEE_ACTIVATED` を残す。`BOOTSTRAP_ADMIN_*` による初期ADMIN作成はAPIではなく `ApplicationRunner` の冪等起動処理であり、`POST /auth/activate` や `POST /admin/employees` で代替しない。公開の `/setup` 画面/APIは設けない。
+`POST /auth/activate` は `employee_invitations.token_hash` と突合し、`expires_at` と `used_at IS NULL` を検証する。失敗時は `404`（トークン不明）または `410`（期限切れ/使用済み）を返し、成功時は `used_at` を設定し監査ログ `EMPLOYEE_ACTIVATED` を残す。`BOOTSTRAP_ADMIN_*` による初期ADMIN作成はAPIではなく、1つのトランザクションで `SELECT pg_advisory_xact_lock(hashtext('bootstrap_admin'))` 後に件数検証する `ApplicationRunner` の冪等起動処理であり、`POST /auth/activate` や `POST /admin/employees` で代替しない。公開の `/setup` 画面/APIは設けない。`departments` は `V2` で既定の `未所属`（`00000000-0000-0000-0000-000000000001`）がSeedされ、空DBでもBootstrap可能である。`BOOTSTRAP_ADMIN_DEPARTMENT_ID` が未指定の場合は既定部署を使用する。初期管理者のパスワード変更は推奨（必須ではなく、専用のパスワード変更API/UIは未定義のため任意）とし、実施した場合は監査する。
 
 ## 3. 社員勤怠・提出
 
@@ -75,8 +75,8 @@
 | `GET /admin/push-status?status=` | 管理者 | 社員単位に集約したPush状態の一覧。`DENIED`で拒否者を抽出可能。 |
 | `GET /admin/exports/attendance.xlsx?month=&departmentId=&status=` | 管理者 | フィルタ済み月次Excelをストリーム返却し、出力監査ログを残す。 |
 | `GET /admin/employees` | 管理者 | 社員一覧を返す。パスワードやトークンは含めない。 |
-| `POST /admin/employees` | 管理者 | 社員を招待として作成する。`employee_code`, `display_name`, `department_id`, `role` を受け取る。`password` は受け取らない。作成時は `is_active=false` とし、招待トークンを発行して `employee_invitations` に保存する。平文トークンはレスポンスに1回のみ含め、管理画面でコピーして本人へ渡す。監査 `EMPLOYEE_INVITED` を残す。 |
-| `PATCH /admin/employees/{id}` | 管理者 | 部署・権限・有効状態を変更する。`role` または `is_active` の変更時、有効な `ADMIN` が0人になる場合は `409 LAST_ADMIN_RESTRICTION` で拒否する（`SELECT COUNT(*) WHERE role='ADMIN' AND is_active=true FOR UPDATE` で検証）。成功時は監査 `ROLE_CHANGED` / `EMPLOYEE_DEACTIVATED` を残す。 |
+| `POST /admin/employees` | 管理者 | 社員を招待として作成する。`employee_code`, `display_name`, `department_id`, `role` を受け取る。`password` は受け取らない。作成時は `is_active=false` とし、招待トークンを発行して `employee_invitations` に保存する。平文トークンはレスポンスに1回のみ含め、管理画面でコピーして本人へ渡す。監査 `EMPLOYEE_INVITED` を残す。再招待時は既存の有効な未使用招待を無効化して新トークンを発行し、社員ごとに有効な未使用招待は1件のみとする。 |
+| `PATCH /admin/employees/{id}` | 管理者 | 部署・権限・有効状態を変更する。`role` または `is_active` の変更時、有効な `ADMIN` が0人になる場合は `409 LAST_ADMIN_RESTRICTION` で拒否する（同一トランザクションで `SELECT pg_advisory_xact_lock(hashtext('last_admin_protection'))` 後に `SELECT COUNT(*) FROM employees WHERE role='ADMIN' AND is_active=true` で検証）。成功時は監査 `ROLE_CHANGED` / `EMPLOYEE_DEACTIVATED` を残す。 |
 | `GET/POST/PATCH /admin/calendar` | 管理者 | 会社休日・勤務日例外を管理する。 |
 | `GET /admin/deadlines/{month}` | 管理者 | 対象月の永続化済み締切を返す。`dueAt`はISO 8601 UTC、画面表示と入力基準はJST。 |
 | `PUT /admin/deadlines/{month}` | 管理者 | 月次締切を作成・更新する。本文の`dueAt`はJSTオフセット付き日時を必須とし、変更は監査ログへ記録する。 |

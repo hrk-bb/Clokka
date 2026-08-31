@@ -53,10 +53,11 @@
 
 ### 招待・Bootstrap・最後のADMINテスト
 
-* 空DBで `BOOTSTRAP_ADMIN_*` を設定して起動すると `ADMIN` が1件作成され、再起動しても増えないこと。`ADMIN` が既に存在する状態ではSeedが何もしないこと。
+* 空DBで `BOOTSTRAP_ADMIN_*` を設定して起動すると `ADMIN` が1件作成され、再起動しても増えないこと（`departments` は `V2` で既定の `未所属` がSeedされているため空DBでも実行可能）。`ADMIN` が既に存在する状態ではSeedが何もしないこと。
 * `is_active=false` の社員は `POST /auth/login` で `401` となること。`POST /auth/activate` で正しいトークンと新パスワードを送ると `is_active=true` となり、トークンは1回限りで2回目は `410`/`404` となること。
 * 有効期限切れトークンは `410`、不正トークンは `404` となること。管理者は平文トークンをDBに残さず、再発行は新たな招待で発行すること。
-* 有効な `ADMIN` が1人の状態で `PATCH /admin/employees/{id} {role:EMPLOYEE}` または `{is_active:false}` を送ると `409 LAST_ADMIN_RESTRICTION` で拒否され、DBは変更されないこと。2人いる状態では1人の降格が成功すること。
+* 再招待時は既存の有効な未使用招待が無効化され、新トークンのみが有効であること。
+* 有効な `ADMIN` が1人の状態で `PATCH /admin/employees/{id} {role:EMPLOYEE}` または `{is_active:false}` を送ると、トランザクション内で `SELECT pg_advisory_xact_lock(hashtext('last_admin_protection'))` 後に件数検証が行われ `409 LAST_ADMIN_RESTRICTION` で拒否され、DBは変更されないこと。2人いる状態では1人の降格が成功すること。
 
 ## 5. APIテスト規約
 

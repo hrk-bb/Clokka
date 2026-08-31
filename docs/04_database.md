@@ -140,7 +140,7 @@ ALTER TABLE employee_invitations
 
 出退勤の提出ロックと休日由来の必須日数は、複数行・複数テーブルに跨るため、DB制約による検証の後に、行ロックを伴うアプリケーションのトランザクションで強制する。DBトリガで `SUBMITTED` に紐づく勤怠の書き込みを追加で拒否してもよいが、認可はアプリケーションが担う。
 
-**Bootstrapと最後の管理者はアプリケーション強制であり、DBのCHECKではない:** `BOOTSTRAP_ADMIN_*` のSeedは `SELECT COUNT(*) WHERE role='ADMIN' AND is_active=true` が0の場合のみ、アドバイザリロックを伴う `ApplicationRunner` で実行する。最後の管理者保護は、有効な `ADMIN` 行を `FOR UPDATE` でカウントした後に `UPDATE employees SET role='EMPLOYEE'` または `is_active=false` を実行し、件数が0になる場合は `409 LAST_ADMIN_RESTRICTION` でロールバックする。`employees` に管理者の最低人数を強制する `CHECK` は置かない。
+**Bootstrapと最後の管理者はアプリケーション強制であり、DBのCHECKではない:** `BOOTSTRAP_ADMIN_*` のSeedは `ApplicationRunner` が1つのトランザクションで `SELECT pg_advisory_xact_lock(hashtext('bootstrap_admin'))` を実行した後に `SELECT COUNT(*) FROM employees WHERE role='ADMIN' AND is_active=true` を実行し、件数が0の場合のみ1件を挿入する。既に存在する場合は何もしない。`departments` は `V2` で既定の `未所属`（`00000000-0000-0000-0000-000000000001`）をSeedするため、空DBでもBootstrap可能である。`BOOTSTRAP_ADMIN_DEPARTMENT_ID` が未指定の場合は既定部署を使用する。最後の管理者保護は、1つのトランザクションで `SELECT pg_advisory_xact_lock(hashtext('last_admin_protection'))` を実行した後に `SELECT COUNT(*) FROM employees WHERE role='ADMIN' AND is_active=true` で件数を検証し、件数が0になる更新であれば `409 LAST_ADMIN_RESTRICTION` でロールバックする。`employees` に最低人数を強制する `CHECK` は置かない。
 
 ## 5. 締切と通知配信
 
@@ -191,7 +191,7 @@ ALTER TABLE push_subscriptions
 
 ## 6a. 社員招待の保存
 
-`employee_invitations` は `POST /auth/activate` の招待トークンを実現する。`POST /admin/employees` でサーバは `employees` を `is_active=false`、`password_hash` をランダムな使用不可な値として作成した後、`token_hash = SHA256(平文トークン)`、`expires_at = now() + 24時間`、`used_at = NULL` として `employee_invitations` 行を1件挿入する。平文トークンは作成した `ADMIN` に1回だけ返却して手渡し用とし、保存しない。`POST /auth/activate` は `token_hash` を照合し、`expires_at > now()` かつ `used_at IS NULL` を検証した後、同一トランザクションで `employees.password_hash` を新パスワードのArgon2idハッシュに設定し `is_active=true` とし `used_at=now()` とする。期限切れ・使用済みのトークンは `410`/`404` で拒否する。
+`employee_invitations` は `POST /auth/activate` の招待トークンを実現する。`POST /admin/employees` でサーバは `employees` を `is_active=false`、`password_hash` をランダムな使用不可な値として作成した後、`token_hash = SHA256(平文トークン)`、`expires_at = now() + 24時間`、`used_at = NULL` として `employee_invitations` 行を1件挿入する。平文トークンは作成した `ADMIN` に1回だけ返却して手渡し用とし、保存しない。`POST /auth/activate` は `token_hash` を照合し、`expires_at > now()` かつ `used_at IS NULL` を検証した後、同一トランザクションで `employees.password_hash` を新パスワードのArgon2idハッシュに設定し `is_active=true` とし `used_at=now()` とする。期限切れ・使用済みのトークンは `410`/`404` で拒否する。再招待時は既存の有効な未使用招待があれば旧トークンを無効化して新トークンを発行し、社員ごとに有効な未使用招待は1件のみとする。初期管理者のパスワード変更は推奨（必須ではなく、専用APIは未定義のため任意）とし、実施した場合は監査する。
 
 ## 7. インデックス、ロール、不変な監査ログ
 

@@ -28,8 +28,8 @@
 3. ログイン失敗は社員IDの存在を示さず、IP・社員ID単位でレート制限する。
 4. `EMPLOYEE`は常に認証済み社員IDを条件に検索し、リクエストの`employeeId`を信用しない。
 5. `ADMIN` APIはロールだけでなく、無効化済みアカウントを拒否する。
-6. 初期管理者のBootstrapは `BOOTSTRAP_ADMIN_*` 環境変数からのみ実行し、有効な `ADMIN` が0人の場合のみ冪等に1件を作成する。公開の `/setup` 画面/APIは設けない。招待トークンは128bit以上のランダム値、SHA-256でハッシュ化して保存し、有効期限24時間、1回限りで無効化する。
-7. 最後の有効 `ADMIN`（`role='ADMIN' AND is_active=true` が1件）の `role` 降格または `is_active=false` は、アプリケーションで `SELECT ... FOR UPDATE` による件数検証の後に `409 LAST_ADMIN_RESTRICTION` で拒否する。DBの `CHECK` では人数を強制しない。
+6. 初期管理者のBootstrapは `BOOTSTRAP_ADMIN_*` 環境変数からのみ実行し、有効な `ADMIN` が0人の場合のみ冪等に1件を作成する。公開の `/setup` 画面/APIは設けない。`departments` は `V2` で既定の `未所属` をSeedするため空DBでも実行可能である。初期管理者のパスワード変更は推奨（必須ではなく、専用API/UIは未定義のため任意）とする。招待トークンは128bit以上のランダム値、SHA-256でハッシュ化して保存し、有効期限24時間、1回限りで無効化する。再招待時は既存の有効な未使用招待を無効化して新トークンを発行する。
+7. 最後の有効 `ADMIN`（`role='ADMIN' AND is_active=true` が1件）の `role` 降格または `is_active=false` は、アプリケーションで `SELECT pg_advisory_xact_lock(hashtext('last_admin_protection'))` 後に `SELECT COUNT(*) FROM employees WHERE role='ADMIN' AND is_active=true` で件数検証した後に `409 LAST_ADMIN_RESTRICTION` で拒否する。DBの `CHECK` では人数を強制しない。
 
 ## 3. Web防御
 
@@ -66,7 +66,7 @@
 
 ### Bootstrapと最後の管理者
 
-- Bootstrapは `ApplicationRunner` で `BOOTSTRAP_ADMIN_*` を読み、有効ADMINが0件の時のみ実行する。既に存在する場合は何もせず、再実行してもADMINを増やさない。公開APIではないためレート制限の対象外だが、環境変数が未設定の場合は起動時に警告ログを残しつつ何も作成しない。
+- Bootstrapは `ApplicationRunner` で `BOOTSTRAP_ADMIN_*` を読み、1つのトランザクションで `SELECT pg_advisory_xact_lock(hashtext('bootstrap_admin'))` 後に件数検証し、有効ADMINが0件の時のみ実行する。既に存在する場合は何もせず、再実行してもADMINを増やさない。公開APIではないためレート制限の対象外だが、環境変数が未設定の場合は起動時に警告ログを残しつつ何も作成しない。
 - 最後のADMIN保護は、UIでは該当行の降格/無効化ボタンを無効化しつつ、APIでは `409` で二重に拒否する。DBでは人数を `CHECK` しない。
 
 ## 6. MVPの受容リスク
