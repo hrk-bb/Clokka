@@ -1,9 +1,9 @@
-# Clokka Backlog
+# Clokka バックログ
 
-| Item | Value |
+| 項目 | 内容 |
 | --- | --- |
-| Status | NOT_STARTED |
+| 目的 | リリース後の将来的な改善項目を管理する。 |
+| 対象読者 | プロダクトオーナー、開発者、AIエージェント |
+| 状態 | 未着手 |
 | Phase | 11 |
-| Purpose | Track future improvements after launch. |
-
-> This document will be used from Phase 11. Phase 1 backlog is in `01_requirements.md`. Do not use as current source before then.
+| 最終更新日 | 未着手のため未設定 |

@@ -1,91 +1,93 @@
-# Clokka Formal Handoff
+# Clokka 正式引き継ぎ資料
 
-| Item | Value |
+| 項目 | 内容 |
 | --- | --- |
-| Purpose | Hand over the project without relying on chat history. |
-| Audience | Next AI agent, Product Owner, developers, reviewers. |
-| Update timing | Before replacing an agent, after a phase change, or after a material audit finding. |
-| Audit date | 2026-08-28. |
+| 目的 | チャット履歴に頼らずプロジェクトを引き継げるようにする。 |
+| 対象読者 | 次のAIエージェント、プロダクトオーナー、開発者、レビュー担当者 |
+| 更新タイミング | エージェント交代前、Phase変更後、重大な監査結果が出た後 |
+| 監査日 | 2026-08-29（言語統一・文書整合性の是正を反映） |
 
-## Handoff Summary
+## 引き継ぎ概要
 
-Clokka is a design-first attendance-management MVP. Phase 1 (requirements) and Phase 2 (architecture/technology selection) are recorded as approved. **Phase 3 (detailed DB/API/UI/security design) is approved as a whole (Q-01 approved 2026-08-28) including the draw.io 12 PNG and the normalized repository structure (`frontend/`/`backend/`).** Phase 4 governance/test design is now in progress. No software implementation, test, CI/CD, Docker, or deployment configuration exists in the repository.
+Clokkaは設計優先の勤怠管理MVPである。Phase 1（要件）とPhase 2（アーキテクチャ/技術選定）は承認済みとして記録されている。**Phase 3（DB/API/UI/セキュリティの詳細設計）は全体として承認済み（Q-01、2026-08-28）**。draw.ioのPNG12枚（S-11を除く。KI-015参照）と正規化済みリポジトリ構成（`frontend/`/`backend/`）を含む。Phase 4のガバナンス/テスト設計は現在レビュー中。リポジトリにはソフトウェア実装、テスト、CI/CD、Docker、デプロイ設定は存在しない。
 
-## What Has Been Completed
+## 完了したこと
 
-- Requirements, user roles, acceptance conditions, overnight-work rule, and initial scope are documented.
-- Architecture and stack were selected: Spring Boot/Java 21, Vanilla JavaScript, PostgreSQL/Neon, Render Free MVP, GitHub Actions concept, Argon2id/session auth, Flyway, Apache POI, Web Push.
-- Phase 3 review drafts exist for DB/API/UI/security.
-- Product Owner decisions recorded in primary requirements include: overnight work uses clock-in date (`D-01`), leave is excluded (`D-03`), Push rejection status is visible to admins and external contact is out of scope (`D-04`), Render idle behavior is accepted for MVP (`D-05`), and real employee data was approved for MVP external services (`D-06`).
-- Handoff documentation and permanent agent rules were created.
+- 要件、利用者ロール、受入条件、日跨ぎ勤務ルール、初期スコープを文書化済み。
+- アーキテクチャと技術スタックを選定済み：Spring Boot/Java 21、Vanilla JavaScript、PostgreSQL/Neon、Render Free MVP、GitHub Actionsの構想、Argon2id/セッション認証、Flyway、Apache POI、Web Push。
+- Phase 3のDB/API/UI/セキュリティのレビュー草案が存在する。
+- プロダクトオーナーの決定として要件文書に記録されている主な項目：日跨ぎ勤務は出勤日基準（`D-01`）、休暇は対象外（`D-03`）、Push拒否状況は管理者に可視化し外部連絡は対象外（`D-04`）、Render Freeのアイドル停止挙動はMVPとして受容（`D-05`、`03_tech-stack.md`に記録）、実社員データをMVP外部サービスで扱うことを承認（`D-06`）、初期管理者Bootstrap・招待・最後のADMIN保護（`D-07`〜`D-09`、Q-01追補として2026-08-28承認）。
+- 引き継ぎ文書と恒久的なエージェントルール（`AGENTS.md`）を作成済み。
 
-## What Is In Progress
+## 進行中のこと
 
-- Phase 4 design and review (`08_directory.md` through `11_test-plan.md`).
-- Repository structure alignment completed 2026-08-28 before Phase 4.
+- Phase 4の設計とレビュー（`08_directory.md`〜`11_test-plan.md`）。
+- Phase 4着手前のリポジトリ構成統一を2026-08-28に完了。
 
-## What Has Not Started
+## 未着手のこと
 
-- Phase 5 deployment/operation design.
-- All source implementation and infrastructure: Gradle project, Spring Boot, UI, SQL migrations, Dockerfile, Render configuration, GitHub Actions workflow, test code, CI, deployment, manuals.
+- Phase 5（デプロイ・運用設計）。
+- 全ての実装・インフラ：Gradleプロジェクト、Spring Boot、UI、SQLマイグレーション、Dockerfile、Render設定、GitHub Actionsワークフロー、テストコード、CI、デプロイ、マニュアル。
 
-## Feature Traceability Snapshot
+## 機能トレーサビリティ概要
 
-| Requirement area | Design exists | Implemented | Tested | CI verified | Runtime verified |
+| 要件領域 | 設計 | 実装 | テスト | CI検証 | 実行時検証 |
 | --- | --- | --- | --- | --- | --- |
-| Auth/roles | Yes | No | No | No | No |
-| Attendance/overnight rule | Yes | No | No | No | No |
-| Monthly submission/return | Yes | No | No | No | No |
-| Push and status list | Yes, conflict noted | No | No | No | No |
-| Admin list/filters | Yes | No | No | No | No |
-| Excel export | Yes | No | No | No | No |
-| Audit logging | Yes | No | No | No | No |
-| Backup/operations | Requirements/concepts only | No | No | No | No |
+| 認証/ロール | あり | なし | なし | なし | なし |
+| 勤怠/日跨ぎルール | あり | なし | なし | なし | なし |
+| 月次提出/差戻し | あり | なし | なし | なし | なし |
+| Push・状態一覧 | あり（既知の指摘あり） | なし | なし | なし | なし |
+| 管理者一覧/絞込み | あり | なし | なし | なし | なし |
+| Excel出力 | あり | なし | なし | なし | なし |
+| 監査ログ | あり | なし | なし | なし | なし |
+| バックアップ/運用 | 要件/構想のみ | なし | なし | なし | なし |
 
-## Known Problems
+## 既知の問題
 
-Read `known-issues.md` before editing. Highest-priority items are:
+編集前に`known-issues.md`を必ず読むこと。優先度の高い項目：
 
-1. The repository has no implementation, tests, CI, Docker, or deployment configuration.
-2. The notification idempotency model is approved as an individual Phase 3 decision; it intentionally favors at-most-once Push attempts over retry after a crash. Whole-phase approval is still required.
-3. Data retention/deletion policy remains unresolved before formal operation.
-4. Push subscription encryption-key backup/recovery must be designed in Phase 5 before operations can be claimed.
+1. リポジトリには実装・テスト・CI・Docker・デプロイ設定が存在しない。
+2. 通知のべき等性モデルはPhase 3の個別決定として承認済みで、クラッシュ後の再送よりも「最大1回のPush試行」を意図的に優先している。
+3. データ保持/削除ポリシーは正式運用前に未解決（`R-03`）。
+4. Push購読の暗号鍵バックアップ/リカバリは、運用を主張する前にPhase 5で設計する必要がある。
+5. S-11（招待有効化）のdraw.io/PNGが未作成（`known-issues.md` KI-015）。
 
-## Important Decisions
+## 重要な決定事項
 
-See `decisions.md` for evidence and alternatives. Do not revise these silently:
+根拠と代替案は`decisions.md`を参照。無断で修正しないこと：
 
-- `D-01`: Overnight attendance belongs to clock-in date in JST.
-- `D-03`: Leave is out of initial scope.
-- `D-04`: Admin sees Push status; external contact for Push-refusing employees is out of scope.
-- `D-05`: Render Free idle shutdown is accepted only for MVP.
-- `D-06`: Product Owner approved real employee data on the Render Free + Neon Free MVP design, subject to security controls.
-- MVP hosting direction: Render Free web service + Neon Free Postgres; AWS is a later company-approved production option. OCI is prohibited for this project’s MVP.
+- `D-01`：日跨ぎ勤務はJSTの出勤日を基準とする。
+- `D-03`：休暇は初期スコープ外。
+- `D-04`：管理者はPush状態を確認できる。Push拒否社員への外部連絡は対象外。
+- `D-05`：Render Freeのアイドル停止はMVPに限り受容する。
+- `D-06`：プロダクトオーナーが、セキュリティ管理を条件にRender Free + Neon FreeのMVP設計上での実社員データ利用を承認済み。
+- `D-07`〜`D-09`：初期管理者Bootstrap・複数管理者/招待・最後のADMIN保護（Q-01追補、2026-08-28承認）。
+- MVPホスティング方針：Render Free Webサービス＋Neon Free Postgres。AWSは将来の会社承認済み本番選択肢。OCIは本プロジェクトのMVPでは禁止。
 
-## Do Not Change
+## 変更してはいけないこと
 
-- Do not start product implementation or Phase 4 before Phase 3 approval.
-- Do not change work-date semantics, initial out-of-scope leave policy, hosting policy, or data-handling decision without Product Owner approval.
-- Do not treat old Japanese documents as current architecture without resolving documented migration/conflict issues.
-- Do not commit secrets, `.env` files, or employee data.
-- Do not mark planned items as implemented/tested/deployed.
+- Phase 3承認前に製品実装やPhase 4を開始しないこと（Phase 3は承認済みだが、Phase 4/5承認前にPhase 6実装は開始しない）。
+- 日跨ぎ勤務の意味論、初期スコープ外の休暇方針、ホスティング方針、データ取扱いの決定を、プロダクトオーナー承認なしに変更しないこと。
+- 移行前の日本語文書は削除済みであり、現行の正本として扱わないこと（`01_requirements.md` 8章参照）。
+- 秘密情報、`.env`ファイル、社員データをコミットしないこと。
+- 未実装の項目を実装済み/テスト済み/デプロイ済みと表記しないこと。
 
-## Human Approval Required
+## 人による承認が必要な事項
 
-| ID | Required decision |
+| ID | 必要な決定 |
 | --- | --- |
-| Q-01 | **RESOLVED 2026-08-28** — Phase 3 approved as a whole. |
-| Q-04 | Approve/reject Phase 4 governance/test documents (`08`–`11` and PR template). |
-| Q-05 | Before Phase 5/10: set employee-data retention/deletion policy (`R-03`) and production hosting/availability design (`R-02`, `R-05`). |
+| Q-01 | **解決済み（2026-08-28）** — Phase 3を全体として承認。 |
+| Q-04 | Phase 4のガバナンス/テスト文書（`08`〜`11`とPRテンプレート）の承認/却下。 |
+| Q-05 | Phase 5/10前に、社員データの保持/削除ポリシー（`R-03`）と本番ホスティング/可用性設計（`R-02`、`R-05`）を確定すること。 |
 
-## Immediate Next Actions
+## 直近の次のアクション
 
-1. Review Phase 4 documents (`08_directory.md` through `11_test-plan.md` plus PR template).
-2. Obtain Product Owner approval for `Q-04` (Phase 4).
-3. After Q-04, create Phase 5 deployment/operation design.
-4. Only after Phase 4/5 approval, begin Phase 6 foundation implementation under the approved rules.
+1. Phase 4文書（`08_directory.md`〜`11_test-plan.md`とPRテンプレート）をレビューする。
+2. Phase 4のプロダクトオーナー承認（`Q-04`）を得る。
+3. Q-04承認後にPhase 5（デプロイ・運用設計）を作成する。
+4. Phase 4/5承認後にのみ、承認済みルールのもとでPhase 6の基盤実装を開始する。
 
-## Recommended Reading Order
+## 推奨する読む順序
 
 1. `../../AGENTS.md`
 2. `current-state.md`
@@ -93,6 +95,5 @@ See `decisions.md` for evidence and alternatives. Do not revise these silently:
 4. `decisions.md`
 5. `roadmap.md`
 6. `../01_requirements.md`
-7. `../02_architecture.md` and `../03_tech-stack.md`
-8. `../04_database.md`, `../05_api.md`, `../06_screen-design.md`, `../07_security.md`
-9. Legacy Japanese docs only for historical comparison, not as current truth.
+7. `../02_architecture.md`と`../03_tech-stack.md`
+8. `../04_database.md`、`../05_api.md`、`../06_screen-design.md`、`../07_security.md`

@@ -1,67 +1,68 @@
-# Clokka Project Overview
+# Clokka プロジェクト概要
 
-| Item | Value |
+| 項目 | 内容 |
 | --- | --- |
-| Purpose | Explain the project’s confirmed product scope and intended technical direction for successors. |
-| Audience | Product Owner, AI agents, developers, reviewers, operators. |
-| Update timing | When approved requirements, scope, architecture, or final goal changes. |
-| Audit basis | Repository contents inspected and synchronized on 2026-08-24. |
+| 目的 | 承認済みのプロダクトスコープと意図する技術方針を、後継者向けに説明する。 |
+| 対象読者 | プロダクトオーナー、AIエージェント、開発者、レビュー担当者、運用担当者 |
+| 更新タイミング | 承認済みの要件、スコープ、アーキテクチャ、最終ゴールが変更された時 |
+| 監査基準 | リポジトリ内容を調査し2026-08-24に同期。2026-08-29に日本語へ統一。 |
+| 関係 | 本文書は`../01_requirements.md`（一次要件文書）の要約であり、正本ではない。両者が食い違う場合は`01_requirements.md`を優先する。 |
 
-## Project
+## プロジェクト
 
-Clokka is a browser-based attendance and monthly-submission management application for approximately 50 employees. Employees enter daily attendance on a smartphone or PC; administrators manage submission status and export monthly data as Excel.
+Clokkaは、社員約50名を対象としたブラウザベースの勤怠・月次提出管理アプリケーションである。社員はスマートフォンまたはPCで日々の勤怠を入力し、管理者は提出状況を管理し、月次データをExcelとして出力する。
 
-## Most important objective
+## 最重要目的
 
-Prevent missed monthly attendance submissions. The target is zero missed submissions at the deadline.
+月次勤怠の提出漏れを防止すること。目標は、締切時点での提出漏れ0件。
 
-## Users
+## 利用者
 
-| User | Confirmed responsibilities |
+| 利用者 | 確定している役割 |
 | --- | --- |
-| Employee | Enter and edit own attendance before submission, review monthly status, submit, and configure browser Push notifications. |
-| Administrator | View and filter submission status, return submitted records with a reason, export Excel, manage employees/departments/calendar/deadlines, and view aggregated Push status. |
+| 社員 | 提出前の自身の勤怠の入力・修正、月次状況の確認、提出、ブラウザPush通知の設定。 |
+| 管理者 | 提出状況の確認・絞込み、理由付きでの提出済みレコードの差戻し、Excel出力、社員/部署/カレンダー/締切の管理、Push状態の集約表示。 |
 
-## Confirmed initial scope
+## 確定済みの初期スコープ
 
-- Browser use on smartphone and PC.
-- Employee ID/password authentication and employee/admin authorization.
-- Daily clock-in, clock-out, break minutes, and note.
-- Work date is based on JST clock-in date. Overnight work belongs to the start date; multiple clock-ins and 24-hour-or-longer work are out of scope.
-- Monthly validation, submission, edit lock after submission, and administrator return.
-- Submission-status management, sorting/filtering, and XLSX export.
-- Web Push plus in-app warnings; an administrator can filter Push status (`GRANTED`, `DENIED`, `DEFAULT`, `UNSUPPORTED`, `UNKNOWN`). External contact for Push-refusing users is out of initial scope.
-- Company holidays and workday overrides.
-- Audit logging, HTTPS, authorization, and planned backup/restore operations.
+- スマートフォン・PCでのブラウザ利用。
+- 社員ID/パスワード認証と社員/管理者の権限分離。
+- 日次の出勤・退勤・休憩時間・備考の入力。
+- 対象勤務日はJSTの出勤日を基準とする。日跨ぎ勤務は開始日に属する。複数回の出勤や24時間以上の勤務はスコープ外。
+- 月次検証、提出、提出後の編集ロック、管理者による差戻し。
+- 提出状況管理、並べ替え/絞込み、XLSX出力。
+- Web Pushとアプリ内警告。管理者はPush状態（`GRANTED`、`DENIED`、`DEFAULT`、`UNSUPPORTED`、`UNKNOWN`）で絞込み可能。Push拒否社員への外部連絡は初期スコープ外。
+- 会社休日と勤務日例外。
+- 監査ログ、HTTPS、認可、計画中のバックアップ/復旧運用。
 
-## Explicitly out of scope for the initial release
+## 初期リリースで明示的にスコープ外とするもの
 
-- Leave requests/display (future consideration).
-- Payroll, overtime-pay calculation, statutory reports, shifts, expense management, SMS, paid email, native apps, biometrics, location/QR punching, and multi-tenant operation.
+- 休暇申請/表示（将来検討）。
+- 給与計算、残業代計算、法定帳票、シフト管理、経費管理、SMS、有料メール、ネイティブアプリ、生体認証、位置情報/QR打刻、マルチテナント運用。
 
-## Intended MVP stack (approved in Phase 2)
+## 想定するMVPスタック（Phase 2で承認済み）
 
-| Area | Intended choice | Status in repository |
+| 領域 | 想定する選択 | リポジトリ内の状態 |
 | --- | --- | --- |
-| Backend | Java 21, Spring Boot 3, Gradle Wrapper | Designed only; no project files/code. |
-| Frontend | HTML/CSS + ES Modules Vanilla JavaScript | Designed only; no files except `.gitkeep`. |
-| Database | Neon Free PostgreSQL | Designed only; no schema/migrations/configuration. |
-| DB migrations | Flyway OSS | Designed only. |
-| Auth | Spring Security server session + Argon2id | Designed only. |
-| Notifications | Web Push (VAPID) + in-app warning | Designed only. |
-| Excel | Apache POI XLSX | Designed only. |
-| MVP hosting | Render Free Web Service built from a Dockerfile, GitHub-linked deployment | Designed only; no Dockerfile, Render manifest, or deployment evidence. |
-| CI | GitHub Actions | Designed only; no workflow exists. |
+| バックエンド | Java 21、Spring Boot 3、Gradle Wrapper | 設計のみ。プロジェクトファイル/コードなし。 |
+| フロントエンド | HTML/CSS + ES Modules Vanilla JavaScript | 設計のみ。`.gitkeep`以外のファイルなし。 |
+| データベース | Neon Free PostgreSQL | 設計のみ。スキーマ/マイグレーション/設定なし。 |
+| DBマイグレーション | Flyway OSS | 設計のみ。 |
+| 認証 | Spring Securityサーバーセッション + Argon2id | 設計のみ。 |
+| 通知 | Web Push（VAPID）＋アプリ内警告 | 設計のみ。 |
+| Excel | Apache POI XLSX | 設計のみ。 |
+| MVPホスティング | DockerfileからビルドするRender Free Webサービス、GitHub連携デプロイ | 設計のみ。Dockerfile、Renderマニフェスト、デプロイ証跡なし。 |
+| CI | GitHub Actions | 設計のみ。ワークフローなし。 |
 
-## Development policy
+## 開発方針
 
-Priorities are maintainability, simplicity, free cost, security, extensibility, then performance. The approved MVP tolerates Render Free’s 15-minute idle shutdown; a production hosting migration will be reconsidered before formal operation. AWS/GCP/OCI are not MVP hosting choices; OCI is prohibited by Product Owner direction.
+優先順位は保守性、シンプルさ、無料、セキュリティ、拡張性、パフォーマンスの順。承認済みのMVPはRender Freeの15分アイドル停止を許容する。正式運用前に本番ホスティングへの移行を再検討する。AWS/GCP/OCIはMVPホスティングの選択肢ではなく、OCIはプロダクトオーナーの方針により本プロジェクトでは禁止する。
 
-## Final goal
+## 最終ゴール
 
-Complete and operable system: approved design documents, repository/development environment, DB/API/UI/backend/frontend, tests/CI, MVP deployment, operational and maintenance procedures, setup instructions, user manual, and administrator manual. This goal is not yet reached.
+完成・運用可能なシステム：承認済み設計文書、リポジトリ/開発環境、DB/API/UI/バックエンド/フロントエンド、テスト/CI、MVPデプロイ、運用・保守手順、セットアップ手順、利用者マニュアル、管理者マニュアル。このゴールにはまだ到達していない。
 
-## Primary evidence
+## 一次証跡
 
 - `../01_requirements.md`
 - `../02_architecture.md`

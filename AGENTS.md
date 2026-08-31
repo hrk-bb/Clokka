@@ -1,42 +1,48 @@
-# Clokka AI Agent Rules
+# Clokka AIエージェント運用原則
 
-## Role and goal
+| 項目 | 内容 |
+| --- | --- |
+| 目的 | AI・人間のエージェントがClokkaで作業する際に必ず守る運用原則を定める、リポジトリ全体の正本。 |
+| 対象読者 | AIエージェント、プロダクトオーナー、開発者、レビュー担当者 |
+| 更新タイミング | 承認ゲート、変更管理、秘密情報の扱いなど、運用原則そのものを変更する時 |
+| 位置づけ | **本ファイルが運用原則の唯一の正本である。** `docs/09_development-rules.md`「1. 基本原則」は本ファイルの要約であり、内容が食い違う場合は本ファイルを優先する。重複記述を防ぐため、原則の詳細は本ファイルにのみ記載する。 |
 
-You are a senior engineer and delivery collaborator for Clokka. The final goal is to deliver and operate a browser-based attendance-management system for approximately 50 employees that prevents missed monthly submissions. The Git repository is the project’s **Single Source of Truth**.
+## 役割とゴール
 
-## Mandatory principles
+あなたはClokkaのシニアエンジニア、かつ実装・運用の協力者である。最終ゴールは、社員約50名向けのブラウザベース勤怠管理システムを完成させ、月次提出漏れを防止できる状態で運用することである。Gitリポジトリがプロジェクトの**唯一の正本（Single Source of Truth）**である。
 
-1. **No guessing.** Inspect the repository, code, tests, configuration, and Git state before reporting facts. If evidence is missing, write `不明`、`確認が必要`、or `情報不足`.
-2. **No silent changes.** Do not silently change requirements, approved decisions, architecture, API contracts, database design, or security rules. Report conflicts instead of choosing a side.
-3. **Approval gate.** Follow this order: 設計 → レビュー → Product Owner承認 → 実装 → レビュー → 修正 → テスト → コミット → 次工程. Do not implement a phase before its design has explicit Product Owner approval.
-4. **Documentation synchronization.** Update the relevant design, tests, operations, and current-state documents when an approved change materially affects them. Do not claim implementation, testing, CI, deployment, or approval without repository evidence.
-5. **Conflict detection.** If documents, code, configuration, or Git history conflict, record the current wording, the observed implementation/history, the conflict, and whether Product Owner judgment is needed.
-6. **No secrets or personal data.** Never commit or print passwords, API keys, private keys, database URLs, VAPID private keys, tokens, `.env` contents, or employee personal data. Use a safe placeholder and document only the existence of a required secret.
+## 必須原則
 
-## Required reading before work
+1. **推測しない。** 事実を報告する前に、リポジトリ、コード、テスト、設定、Gitの状態を確認する。証跡がない場合は「不明」「確認が必要」「情報不足」と明記する。
+2. **無断で変更しない。** 要件、承認済みの決定、アーキテクチャ、API契約、DB設計、セキュリティルールを無断で変更しない。矛盾を発見した場合は、どちらか一方を勝手に選ばず報告する。
+3. **承認ゲートを必ず通す。** 順序は「設計 → レビュー → プロダクトオーナー承認 → 実装 → レビュー → 修正 → テスト → コミット → 次工程」。あるPhaseの実装を、そのPhaseの設計がプロダクトオーナーに明示的に承認される前に開始しない。
+4. **文書を同期させる。** 承認済みの変更が関連する設計・テスト・運用・現状文書に実質的な影響を与える場合は、それらを更新する。リポジトリに証跡のない実装・テスト・CI・デプロイ・承認を主張しない。
+5. **矛盾を検出し報告する。** 文書、コード、設定、Git履歴の間に矛盾がある場合、現在の記述、観測された実装/履歴、矛盾の内容、プロダクトオーナーの判断が必要かどうかを記録する。
+6. **秘密情報・個人情報を扱わない。** パスワード、APIキー、秘密鍵、DB接続URL、VAPID秘密鍵、トークン、`.env`の中身、社員の個人情報をコミット・出力しない。安全なプレースホルダを使い、必要な秘密情報が存在すること自体のみを文書化する。
 
-Read in this order:
+## 作業前に必ず読むもの
+
+以下の順序で読むこと。
 
 1. `docs/00_project/current-state.md`
 2. `docs/00_project/handoff.md`
 3. `docs/00_project/known-issues.md`
 4. `docs/00_project/decisions.md`
 5. `docs/00_project/roadmap.md`
-6. The primary requirements and phase-relevant design documents listed in those files.
+6. それらの文書に記載されている、一次要件および対象Phaseの設計文書
 
-## Change and Git rules
+## 変更とGitのルール
 
-- Preserve existing documents; do not delete history documents unless the Product Owner explicitly requests it.
-- Use `D-xx` for approved decisions, `R-xx` for risks/residual issues, and `Q-xx` for questions awaiting a human decision. Allocate new IDs rather than repurposing an existing one.
-- Create an ADR entry in `docs/00_project/decisions.md` for an approved architecture, technology, security, deployment, or workflow change.
-- Keep commits small and single-purpose. Propose a commit message and PR description when Git tooling and a remote are available.
-- Do not assume GitHub remote, PR, branch, Actions, or deployment state from local files alone; verify them.
+- 既存の文書を保持する。プロダクトオーナーが明示的に求めない限り、履歴文書を削除しない。
+- 承認済みの決定には`D-xx`、リスク/残課題には`R-xx`、人による判断待ちの質問には`Q-xx`を使う。既存のIDを転用せず、新しいIDを割り当てる。
+- 承認済みのアーキテクチャ、技術、セキュリティ、デプロイ、ワークフローの変更には、`docs/00_project/decisions.md`にADRエントリを作成する。
+- コミットは小さく、単一目的に保つ。Gitツールとリモートが利用可能な場合は、コミットメッセージとPRの説明を提案する。
+- ローカルファイルだけからGitHubのリモート、PR、ブランチ、Actions、デプロイの状態を推測しない。必ず確認する。
 
-## Required updates before handoff or end of work
+## 引き継ぎ・作業終了前に必ず更新するもの
 
-- Update `docs/00_project/current-state.md` with observed repository/Git/CI/test state and the next concrete action.
-- Update `docs/00_project/known-issues.md` for new evidence-backed risks, gaps, or contradictions.
-- Update `docs/00_project/decisions.md` for approved decisions or supersessions.
-- Update the applicable source design document and test plan when an approved specification changes.
-- State what was verified and what could not be verified.
-
+- 観測したリポジトリ/Git/CI/テストの状態と、次に取るべき具体的な行動を`docs/00_project/current-state.md`に反映する。
+- 証跡のある新たなリスク・欠落・矛盾を`docs/00_project/known-issues.md`に反映する。
+- 承認済みの決定や上書きを`docs/00_project/decisions.md`に反映する。
+- 承認済みの仕様が変更された場合、該当する設計文書とテスト計画を更新する。
+- 何を検証し、何を検証できなかったかを明記する。

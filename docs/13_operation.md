@@ -1,9 +1,9 @@
-# Clokka Operation Design
+# Clokka 運用設計（Phase 5）
 
-| Item | Value |
+| 項目 | 内容 |
 | --- | --- |
-| Status | NOT_STARTED |
+| 目的 | バックアップ、監視、復旧、運用手順を定義する。 |
+| 対象読者 | 開発者、AIエージェント、運用担当者、プロダクトオーナー |
+| 状態 | 未着手 |
 | Phase | 5 |
-| Purpose | Define backup, monitoring, recovery, and operational procedures. |
-
-> This document will be created in Phase 5 after Phase 4 approval. Do not edit before then.
+| 最終更新日 | 未着手のため未設定 |
