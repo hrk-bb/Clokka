@@ -12,3 +12,5 @@ opencode autonomous Git workflow verification (2026-08-25)
 - `backend/`: Spring Boot API（未実装）
 - `docs/`: 要件・設計・プロジェクト引き継ぎ資料
 - `.github/workflows/`: CI（未作成）
+
+> **公開リポジトリ確認 (2026-08-28):** 本リポジトリはプライベートからパブリック (`PUBLIC`) へ変更されました。 `gh repo view` で `visibility: PUBLIC` を確認済み。 — https://github.com/hrk-bb/Clokka
